@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ProductSelectionScreen } from '../screens/ProductSelectionScreen';
+import { PaymentScreen } from '../screens/PaymentScreen';
 
 export type RootStackParamList = {
   ProductSelection: undefined;
@@ -28,7 +29,10 @@ export const AppNavigator: React.FC = () => {
           name="ProductSelection"
           component={ProductSelectionScreen}
         />
-        {/* Payment screen will be added in the next step */}
+        <Stack.Screen
+          name="Payment"
+          component={PaymentScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
