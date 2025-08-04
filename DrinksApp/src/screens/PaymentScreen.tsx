@@ -12,6 +12,7 @@ import {
   FlatList,
   SafeAreaView,
   Animated,
+  Image,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -170,9 +171,11 @@ export const PaymentScreen: React.FC = () => {
             rightThreshold={40}
           >
             <View style={styles.productCard}>
-              <View style={styles.productIcon}>
-                <Text style={styles.productIconText}>🥤</Text>
-              </View>
+              <Image
+                source={{ uri: item.product.image }}
+                style={styles.productImage}
+                resizeMode="cover"
+              />
               <View style={styles.productInfo}>
                 <Text style={styles.productName}>{item.product.name}</Text>
                 <Text style={styles.productPrice}>{formatCurrency(item.product.price * item.quantity, currency)}</Text>
@@ -473,17 +476,11 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  productIcon: {
+  productImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFF3E0',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 12,
-  },
-  productIconText: {
-    fontSize: 20,
   },
   productInfo: {
     flex: 1,
