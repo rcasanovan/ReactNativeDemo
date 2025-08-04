@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import {
   View,
   Text,
@@ -17,13 +20,12 @@ import { ApiService } from '../services/api';
 import { CurrencyConverter } from '../utils/currencyConverter';
 import { Product, CartItem, Currency, SaleType } from '../types';
 
-interface ProductSelectionScreenProps {
-  navigation: any;
-}
+type ProductSelectionScreenRouteProp = RouteProp<RootStackParamList, 'ProductSelection'>;
+type ProductSelectionScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProductSelection'>;
 
-export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
-  navigation,
-}) => {
+export const ProductSelectionScreen: React.FC = () => {
+  const navigation = useNavigation<ProductSelectionScreenNavigationProp>();
+  const route = useRoute<ProductSelectionScreenRouteProp>();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('EUR');
@@ -38,6 +40,13 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
   useEffect(() => {
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    // Handle updated cart from PaymentScreen
+    if (route.params?.updatedCart) {
+      setCart(route.params.updatedCart);
+    }
+  }, [route.params?.updatedCart]);
 
   const loadProducts = async () => {
     try {

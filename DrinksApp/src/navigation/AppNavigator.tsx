@@ -5,7 +5,7 @@ import { ProductSelectionScreen } from '../screens/ProductSelectionScreen';
 import { PaymentScreen } from '../screens/PaymentScreen';
 
 export type RootStackParamList = {
-  ProductSelection: undefined;
+  ProductSelection: { updatedCart?: any[] } | undefined;
   Payment: {
     cart: any[];
     total: number;

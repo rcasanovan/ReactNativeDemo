@@ -138,7 +138,10 @@ export const PaymentScreen: React.FC = () => {
         </View>
         <TouchableOpacity
           style={styles.closeButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            // Pass the updated cart back to ProductSelectionScreen
+            navigation.navigate('ProductSelection', { updatedCart: cartItems });
+          }}
         >
           <Text style={styles.closeButtonText}>✕</Text>
         </TouchableOpacity>
