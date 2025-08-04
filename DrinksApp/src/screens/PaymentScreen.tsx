@@ -124,9 +124,18 @@ export const PaymentScreen: React.FC = () => {
 
   const formatCurrency = (amount: number, curr: string) => {
     if (amount === undefined || amount === null || curr === undefined) {
-      return '0.00 €';
+      return '0.00 $';
     }
     return CurrencyConverter.formatCurrency(amount, curr as Currency);
+  };
+
+  const formatProductPrice = (product: any, quantity: number, targetCurrency: string) => {
+    const convertedPrice = CurrencyConverter.convert(
+      product.price,
+      product.currency,
+      targetCurrency as Currency
+    );
+    return CurrencyConverter.formatCurrency(convertedPrice * quantity, targetCurrency as Currency);
   };
 
   return (
@@ -178,7 +187,7 @@ export const PaymentScreen: React.FC = () => {
               />
               <View style={styles.productInfo}>
                 <Text style={styles.productName}>{item.product.name}</Text>
-                <Text style={styles.productPrice}>{formatCurrency(item.product.price * item.quantity, currency)}</Text>
+                <Text style={styles.productPrice}>{formatProductPrice(item.product, item.quantity, currency)}</Text>
               </View>
               <View style={styles.productQuantity}>
                 <Text style={styles.quantityText}>{item.quantity}</Text>
@@ -205,7 +214,14 @@ export const PaymentScreen: React.FC = () => {
           <View style={styles.totalSection}>
             <Text style={styles.totalLabel}>TOTAL</Text>
             <Text style={styles.totalAmount}>
-              {formatCurrency(cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0), currency)}
+              {formatCurrency(cartItems.reduce((sum, item) => {
+                const convertedPrice = CurrencyConverter.convert(
+                  item.product.price,
+                  item.product.currency,
+                  currency as Currency
+                );
+                return sum + (convertedPrice * item.quantity);
+              }, 0), currency)}
             </Text>
           </View>
         </View>

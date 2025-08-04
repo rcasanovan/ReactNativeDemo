@@ -6,7 +6,7 @@ import {
   StyleSheet,
   ImageBackground,
 } from 'react-native';
-import { Product } from '../types';
+import { Product, Currency } from '../types';
 import { CurrencyConverter } from '../utils/currencyConverter';
 
 interface ProductCardProps {
@@ -73,7 +73,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           
           <TouchableOpacity style={styles.priceButton}>
             <Text style={styles.priceButtonText}>
-              {CurrencyConverter.formatCurrency(product.price, product.currency)}
+              {CurrencyConverter.formatCurrency(
+                CurrencyConverter.convert(product.price, product.currency, selectedCurrency as Currency),
+                selectedCurrency as Currency
+              )}
             </Text>
           </TouchableOpacity>
         </View>
