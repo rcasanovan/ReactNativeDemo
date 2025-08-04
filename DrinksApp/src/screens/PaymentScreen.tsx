@@ -212,26 +212,46 @@ export const PaymentScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               styles.paymentOption,
-              selectedPaymentMethod === 'cash' && styles.selectedPaymentOption
+              selectedPaymentMethod === 'cash' && styles.selectedPaymentOption,
+              cartItems.length === 0 && styles.paymentOptionDisabled
             ]}
-            onPress={() => setSelectedPaymentMethod('cash')}
+            onPress={() => {
+              if (cartItems.length === 0) return;
+              setSelectedPaymentMethod('cash');
+            }}
+            disabled={cartItems.length === 0}
           >
-            <Text style={styles.paymentIcon}>💰</Text>
-            <Text style={styles.paymentLabel}>Efectivo</Text>
+            <Text style={[
+              styles.paymentIcon,
+              cartItems.length === 0 && styles.paymentIconDisabled
+            ]}>💰</Text>
+            <Text style={[
+              styles.paymentLabel,
+              cartItems.length === 0 && styles.paymentLabelDisabled
+            ]}>Efectivo</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
             style={[
               styles.paymentOption,
-              selectedPaymentMethod === 'card' && styles.selectedPaymentOption
+              selectedPaymentMethod === 'card' && styles.selectedPaymentOption,
+              cartItems.length === 0 && styles.paymentOptionDisabled
             ]}
             onPress={() => {
+              if (cartItems.length === 0) return;
               setSelectedPaymentMethod('card');
               setShowCardForm(true);
             }}
+            disabled={cartItems.length === 0}
           >
-            <Text style={styles.paymentIcon}>💳</Text>
-            <Text style={styles.paymentLabel}>Tarjeta</Text>
+            <Text style={[
+              styles.paymentIcon,
+              cartItems.length === 0 && styles.paymentIconDisabled
+            ]}>💳</Text>
+            <Text style={[
+              styles.paymentLabel,
+              cartItems.length === 0 && styles.paymentLabelDisabled
+            ]}>Tarjeta</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -552,6 +572,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#CCC',
     fontWeight: '500',
+  },
+  paymentOptionDisabled: {
+    backgroundColor: '#E5E5E5',
+    opacity: 0.6,
+  },
+  paymentIconDisabled: {
+    opacity: 0.5,
+  },
+  paymentLabelDisabled: {
+    color: '#999',
   },
   modalOverlay: {
     flex: 1,
