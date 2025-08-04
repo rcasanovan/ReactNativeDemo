@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,9 @@ import {
   Modal,
   FlatList,
   SafeAreaView,
+  Animated,
 } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -36,11 +38,13 @@ export const PaymentScreen: React.FC = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   
   // Card form state
-  const [cardNumber, setCardNumber] = useState('');
+    const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cardholderName, setCardholderName] = useState('');
   const [cvv, setCvv] = useState('');
-
+  const [cartItems, setCartItems] = useState(cart);
+  const swipeableRefs = useRef<{ [key: number]: any }>({});
+  
   const paymentMethods = [
     { id: 'card', label: 'Tarjeta', icon: '💳' },
     { id: 'cash', label: 'Efectivo', icon: '💵' },
@@ -57,8 +61,24 @@ export const PaymentScreen: React.FC = () => {
   const rowOptions = ['A', 'B', 'C', 'D', 'E', 'F'];
   const seatOptions = ['1', '2', '3', '4', '5', '6'];
 
+  const removeItem = (index: number) => {
+    // Close the swipeable before removing the item
+    if (swipeableRefs.current[index]) {
+      swipeableRefs.current[index].close();
+    }
+    
+    const newCart = [...cartItems];
+    newCart.splice(index, 1);
+    setCartItems(newCart);
+  };
+
   const handlePayment = async () => {
     const seatNumber = `${selectedRow}${selectedSeat}`;
+    
+    if (cartItems.length === 0) {
+      Alert.alert('Error', 'No hay productos en el carrito');
+      return;
+    }
     
     if (selectedPaymentMethod === 'card' && (!cardNumber || !expiryDate || !cardholderName || !cvv)) {
       Alert.alert('Error', 'Por favor complete todos los datos de la tarjeta');
@@ -68,9 +88,11 @@ export const PaymentScreen: React.FC = () => {
     setIsProcessing(true);
 
     try {
+      const updatedTotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      
       const paymentRequest = {
-        items: cart,
-        total,
+        items: cartItems,
+        total: updatedTotal,
         currency: currency as Currency,
         saleType: saleType as SaleType,
         seatNumber: seatNumber.trim(),
@@ -124,19 +146,39 @@ export const PaymentScreen: React.FC = () => {
 
       {/* Product List */}
       <View style={styles.productList}>
-        {cart.map((item: CartItem, index: number) => (
-          <View key={index} style={styles.productCard}>
-            <View style={styles.productIcon}>
-              <Text style={styles.productIconText}>🥤</Text>
+        {cartItems.map((item: CartItem, index: number) => (
+          <Swipeable
+            key={index}
+            ref={(ref) => {
+              if (ref) {
+                swipeableRefs.current[index] = ref;
+              }
+            }}
+            renderRightActions={(progress, dragX) => (
+              <View style={styles.deleteButtonContainer}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => removeItem(index)}
+                >
+                  <Text style={styles.deleteButtonText}>🗑️</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            rightThreshold={40}
+          >
+            <View style={styles.productCard}>
+              <View style={styles.productIcon}>
+                <Text style={styles.productIconText}>🥤</Text>
+              </View>
+              <View style={styles.productInfo}>
+                <Text style={styles.productName}>{item.product.name}</Text>
+                <Text style={styles.productPrice}>{formatCurrency(item.product.price * item.quantity, currency)}</Text>
+              </View>
+              <View style={styles.productQuantity}>
+                <Text style={styles.quantityText}>{item.quantity}</Text>
+              </View>
             </View>
-            <View style={styles.productInfo}>
-              <Text style={styles.productName}>{item.product.name}</Text>
-              <Text style={styles.productPrice}>{formatCurrency(item.product.price * item.quantity, currency)}</Text>
-            </View>
-            <View style={styles.productQuantity}>
-              <Text style={styles.quantityText}>{item.quantity}</Text>
-            </View>
-          </View>
+          </Swipeable>
         ))}
       </View>
 
@@ -156,7 +198,9 @@ export const PaymentScreen: React.FC = () => {
           
           <View style={styles.totalSection}>
             <Text style={styles.totalLabel}>TOTAL</Text>
-            <Text style={styles.totalAmount}>{formatCurrency(total, currency)}</Text>
+            <Text style={styles.totalAmount}>
+              {formatCurrency(cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0), currency)}
+            </Text>
           </View>
         </View>
 
@@ -577,5 +621,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  deleteButtonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+  },
+  deleteButton: {
+    backgroundColor: '#FF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+    borderRadius: 8,
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontSize: 20,
   },
 }); 

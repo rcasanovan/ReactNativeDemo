@@ -8,7 +8,9 @@ import {
   SafeAreaView,
   Alert,
   Modal,
+  Animated,
 } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { ProductCard } from '../components/ProductCard';
 import { Dropdown } from '../components/Dropdown';
 import { ApiService } from '../services/api';
@@ -99,6 +101,8 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
     return cart.reduce((total, item) => total + item.quantity, 0);
   };
 
+
+
   const handleProceedToPayment = () => {
     if (cart.length === 0) {
       Alert.alert('Empty Cart', 'Please add some products to your cart');
@@ -122,6 +126,8 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
       selectedCurrency={selectedCurrency}
     />
   );
+
+
 
   const total = calculateTotal();
   const alternativeCurrencies = total > 0 ? CurrencyConverter.getAlternativeCurrencies(total, selectedCurrency) : {};
@@ -151,6 +157,8 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
         showsVerticalScrollIndicator={false}
         style={{ zIndex: 1 }} // Lower z-index to ensure dropdowns are on top
       />
+
+
 
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
