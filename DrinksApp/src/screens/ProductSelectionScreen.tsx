@@ -148,26 +148,30 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
 
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
-        <View style={styles.bottomContent}>
+        {/* Main Payment Button */}
+        <View style={styles.paymentButtonContainer}>
           <TouchableOpacity
-            style={[styles.payButton, cart.length === 0 && styles.payButtonDisabled]}
+            style={[styles.paymentButton, cart.length === 0 && styles.paymentButtonDisabled]}
             onPress={handleProceedToPayment}
             disabled={cart.length === 0}
           >
-            <Text style={styles.payButtonText}>
-              PAGAR {CurrencyConverter.formatCurrency(total, selectedCurrency)}
-            </Text>
+            {/* Left Segment - Payment */}
+            <View style={styles.paymentSegment}>
+              <Text style={styles.paymentText}>
+                PAGAR <Text style={styles.paymentAmount}>
+                  {CurrencyConverter.formatCurrency(total, selectedCurrency).split(' ')[1]}
+                </Text> {selectedCurrency}
+              </Text>
+            </View>
+            
+            {/* Right Segment - Business Type */}
+            <View style={styles.businessSegment}>
+              <View style={styles.businessContent}>
+                <Text style={styles.businessText}>Business</Text>
+                <Text style={styles.chevronIcon}>▼</Text>
+              </View>
+            </View>
           </TouchableOpacity>
-
-          <View style={styles.dropdownContainer}>
-            <Dropdown
-              label=""
-              value={selectedSaleType}
-              options={saleTypeOptions}
-              onSelect={(value) => setSelectedSaleType(value as SaleType)}
-              badgeCount={getCartItemCount()}
-            />
-          </View>
         </View>
 
         {/* Alternative Currencies */}
@@ -236,36 +240,67 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E5E5',
     padding: 16,
   },
-  bottomContent: {
+  paymentButtonContainer: {
+    marginBottom: 12,
+  },
+  paymentButton: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
+    height: 60,
+    borderRadius: 30,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  payButton: {
-    flex: 1,
+  paymentButtonDisabled: {
+    opacity: 0.6,
+  },
+  paymentSegment: {
+    flex: 2,
     backgroundColor: '#007AFF',
-    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    borderRadius: 8,
-    marginRight: 12,
   },
-  payButtonDisabled: {
-    backgroundColor: '#CCCCCC',
-  },
-  payButtonText: {
+  paymentText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
-  dropdownContainer: {
+  paymentAmount: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  businessSegment: {
     flex: 1,
+    backgroundColor: '#4A5568',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  businessContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  businessText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  chevronIcon: {
+    color: 'white',
+    fontSize: 12,
   },
   currencyDisplay: {
     alignItems: 'center',
   },
   currencyText: {
     fontSize: 14,
-    color: '#666',
+    color: '#333',
+    fontWeight: '500',
   },
 }); 
