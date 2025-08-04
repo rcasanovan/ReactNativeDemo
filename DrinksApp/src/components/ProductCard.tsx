@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
 } from 'react-native';
 import { Product } from '../types';
 import { CurrencyConverter } from '../utils/currencyConverter';
@@ -36,36 +35,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: product.image || 'https://via.placeholder.com/100x100' }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-        {quantity > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{quantity}</Text>
-          </View>
-        )}
-      </View>
-      
+      {/* Product Name - Bottom Left */}
       <Text style={styles.productName}>{product.name}</Text>
+      
+      {/* Quantity - Below Name */}
       <Text style={styles.quantity}>{quantity} unidades</Text>
       
-      <View style={styles.priceContainer}>
-        <Text style={styles.price}>{formattedPrice}</Text>
-      </View>
-      
-      <View style={styles.buttonContainer}>
-        {quantity > 0 && (
-          <TouchableOpacity style={styles.removeButton} onPress={onRemove}>
-            <Text style={styles.buttonText}>-</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity style={styles.addButton} onPress={onAdd}>
-          <Text style={styles.buttonText}>+</Text>
+      {/* Remove Button - Only show when quantity > 0 */}
+      {quantity > 0 && (
+        <TouchableOpacity style={styles.removeButton} onPress={onRemove}>
+          <Text style={styles.removeButtonText}>-</Text>
         </TouchableOpacity>
-      </View>
+      )}
+      
+      {/* Add Button - Bottom Left */}
+      <TouchableOpacity 
+        style={[
+          styles.addButton, 
+          quantity === 0 && styles.addButtonLeft
+        ]} 
+        onPress={onAdd}
+      >
+        <Text style={styles.addButtonText}>+</Text>
+      </TouchableOpacity>
+      
+      {/* Price Button - Bottom Right */}
+      <TouchableOpacity style={styles.priceButton}>
+        <Text style={styles.priceButtonText}>{formattedPrice}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -74,7 +71,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 12,
+    padding: 16,
     margin: 8,
     shadowColor: '#000',
     shadowOffset: {
@@ -85,87 +82,70 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     flex: 1,
-    minHeight: 200,
-  },
-  imageContainer: {
+    aspectRatio: 0.8, // Make it more rectangular (taller)
     position: 'relative',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  image: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  badge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
   productName: {
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 4,
+    fontWeight: 'bold',
+    color: '#333',
+    position: 'absolute',
+    top: 16,
+    left: 16,
   },
   quantity: {
     fontSize: 14,
     color: '#666',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  priceContainer: {
     position: 'absolute',
-    bottom: 40,
-    right: 12,
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    top: 40,
+    left: 16,
   },
-  price: {
+  addButton: {
+    position: 'absolute',
+    bottom: 12,
+    left: 50, // Move to middle position
+    backgroundColor: '#007AFF',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonLeft: {
+    left: 12, // Move to left position when quantity is 0
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  priceButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: '#333',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    minWidth: 60, // Ensure minimum width to prevent overlap
+  },
+  priceButtonText: {
     color: 'white',
     fontSize: 14,
     fontWeight: 'bold',
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    position: 'absolute',
-    bottom: 8,
-    left: 0,
-    right: 0,
-  },
-  addButton: {
-    backgroundColor: '#007AFF',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
   removeButton: {
-    backgroundColor: '#FF3B30',
+    position: 'absolute',
+    bottom: 12,
+    left: 12, // Move to left position
+    backgroundColor: '#FF3B30', // A different color for remove
     width: 32,
     height: 32,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 4,
   },
-  buttonText: {
+  removeButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
