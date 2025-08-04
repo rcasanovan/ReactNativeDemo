@@ -1,42 +1,26 @@
 import { Product, PaymentRequest, PaymentResponse } from '../types';
 
-const BASE_URL = 'https://my-json-server.typicode.com/your-username/refrescos-api';
+const BASE_URL = 'https://my-json-server.typicode.com/rcasanovan/fakeProductsAPI';
 
 export class ApiService {
   static async getProducts(): Promise<Product[]> {
     try {
-      // For now, we'll return mock data since we don't have a real server
-      // In a real implementation, this would be: const response = await fetch(`${BASE_URL}/products`);
-      return [
-        {
-          id: '1',
-          name: 'Cocacola',
-          price: 5.53,
-          stock: 10,
-          currency: 'EUR',
-        },
-        {
-          id: '2',
-          name: 'Schweppes Tónica',
-          price: 2.22,
-          stock: 15,
-          currency: 'EUR',
-        },
-        {
-          id: '3',
-          name: 'Fanta',
-          price: 5.99,
-          stock: 8,
-          currency: 'EUR',
-        },
-        {
-          id: '4',
-          name: 'Sprite',
-          price: 2.32,
-          stock: 12,
-          currency: 'EUR',
-        },
-      ];
+      const response = await fetch(`${BASE_URL}/products`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const apiProducts = await response.json();
+      
+      // Transform API response to match our Product interface
+      return apiProducts.map((apiProduct: any) => ({
+        id: apiProduct.id.toString(), // Convert number to string
+        name: apiProduct.name,
+        price: apiProduct.price,
+        image: apiProduct.image,
+        stock: apiProduct.inventory, // Map inventory to stock
+        currency: 'EUR' as const, // Default to EUR since API doesn't provide currency
+      }));
     } catch (error) {
       console.error('Error fetching products:', error);
       throw new Error('Failed to fetch products');
