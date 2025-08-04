@@ -8,6 +8,9 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Modal,
+  FlatList,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -25,8 +28,18 @@ export const PaymentScreen: React.FC = () => {
   const { cart, total, currency, saleType } = route.params;
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'card'>('card');
-  const [seatNumber, setSeatNumber] = useState('');
+  const [selectedRow, setSelectedRow] = useState('A');
+  const [selectedSeat, setSelectedSeat] = useState('1');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showRowDropdown, setShowRowDropdown] = useState(false);
+  const [showSeatDropdown, setShowSeatDropdown] = useState(false);
+  const [showCardForm, setShowCardForm] = useState(false);
+  
+  // Card form state
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cardholderName, setCardholderName] = useState('');
+  const [cvv, setCvv] = useState('');
 
   const paymentMethods = [
     { id: 'card', label: 'Tarjeta', icon: '💳' },
@@ -41,9 +54,14 @@ export const PaymentScreen: React.FC = () => {
     { id: 'Invitación turista', label: 'Invitación turista' },
   ];
 
+  const rowOptions = ['A', 'B', 'C', 'D', 'E', 'F'];
+  const seatOptions = ['1', '2', '3', '4', '5', '6'];
+
   const handlePayment = async () => {
-    if (!seatNumber.trim()) {
-      Alert.alert('Error', 'Por favor ingrese el número de asiento');
+    const seatNumber = `${selectedRow}${selectedSeat}`;
+    
+    if (selectedPaymentMethod === 'card' && (!cardNumber || !expiryDate || !cardholderName || !cvv)) {
+      Alert.alert('Error', 'Por favor complete todos los datos de la tarjeta');
       return;
     }
 
@@ -89,276 +107,475 @@ export const PaymentScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Pago</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>Ticket</Text>
+          <Text style={styles.subtitle}>Productos seleccionados</Text>
+        </View>
         <TouchableOpacity
-          style={styles.backButton}
+          style={styles.closeButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>← Volver</Text>
+          <Text style={styles.closeButtonText}>✕</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Ticket Details */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Detalles del Ticket</Text>
-        <View style={styles.ticketDetails}>
-          <View style={styles.ticketRow}>
-            <Text style={styles.ticketLabel}>Tipo de Venta:</Text>
-            <Text style={styles.ticketValue}>
-              {saleTypes.find(st => st.id === saleType)?.label || saleType}
-            </Text>
-          </View>
-          <View style={styles.ticketRow}>
-            <Text style={styles.ticketLabel}>Total:</Text>
-            <Text style={styles.ticketValue}>{formatCurrency(total, currency)}</Text>
-          </View>
-          <View style={styles.ticketRow}>
-            <Text style={styles.ticketLabel}>Productos:</Text>
-            <Text style={styles.ticketValue}>{cart.length} items</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Seat Assignment */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Asignación de Asiento</Text>
-        <View style={styles.seatInput}>
-          <Text style={styles.inputLabel}>Número de Asiento:</Text>
-          <TextInput
-            style={styles.seatTextInput}
-            placeholder="Ingrese el número de asiento"
-            value={seatNumber}
-            onChangeText={setSeatNumber}
-            placeholderTextColor="#999"
-          />
-        </View>
-      </View>
-
-      {/* Payment Method */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Método de Pago</Text>
-        <View style={styles.paymentMethods}>
-          {paymentMethods.map((method) => (
-            <TouchableOpacity
-              key={method.id}
-              style={[
-                styles.paymentMethod,
-                selectedPaymentMethod === method.id && styles.selectedPaymentMethod,
-              ]}
-              onPress={() => setSelectedPaymentMethod(method.id as 'cash' | 'card')}
-            >
-              <Text style={styles.paymentIcon}>{method.icon}</Text>
-              <Text style={styles.paymentLabel}>{method.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Cart Items */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Productos Seleccionados</Text>
+      {/* Product List */}
+      <View style={styles.productList}>
         {cart.map((item: CartItem, index: number) => (
-          <View key={index} style={styles.cartItem}>
-            <View style={styles.cartItemInfo}>
-              <Text style={styles.cartItemName}>{item.product.name}</Text>
-              <Text style={styles.cartItemQuantity}>x{item.quantity}</Text>
+          <View key={index} style={styles.productCard}>
+            <View style={styles.productIcon}>
+              <Text style={styles.productIconText}>🥤</Text>
             </View>
-            <Text style={styles.cartItemPrice}>
-              {formatCurrency(item.product.price * item.quantity, currency)}
-            </Text>
+            <View style={styles.productInfo}>
+              <Text style={styles.productName}>{item.product.name}</Text>
+              <Text style={styles.productPrice}>{formatCurrency(item.product.price * item.quantity, currency)}</Text>
+            </View>
+            <View style={styles.productQuantity}>
+              <Text style={styles.quantityText}>{item.quantity}</Text>
+            </View>
           </View>
         ))}
       </View>
 
-      {/* Total */}
-      <View style={styles.totalSection}>
-        <Text style={styles.totalLabel}>Total a Pagar:</Text>
-        <Text style={styles.totalAmount}>{formatCurrency(total, currency)}</Text>
+      {/* Bottom Action Bar */}
+      <View style={styles.bottomBar}>
+        {/* Top Row - Seat and Total */}
+        <View style={styles.topRow}>
+          <View style={styles.seatSection}>
+            <Text style={styles.seatLabel}>ASIENTO</Text>
+            <TouchableOpacity
+              style={styles.seatButton}
+              onPress={() => setShowRowDropdown(true)}
+            >
+              <Text style={styles.seatText}>{selectedRow} {selectedSeat}</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.totalSection}>
+            <Text style={styles.totalLabel}>TOTAL</Text>
+            <Text style={styles.totalAmount}>{formatCurrency(total, currency)}</Text>
+          </View>
+        </View>
+
+        {/* Bottom Row - Payment Options */}
+        <View style={styles.paymentRow}>
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              selectedPaymentMethod === 'cash' && styles.selectedPaymentOption
+            ]}
+            onPress={() => setSelectedPaymentMethod('cash')}
+          >
+            <Text style={styles.paymentIcon}>💰</Text>
+            <Text style={styles.paymentLabel}>Efectivo</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              selectedPaymentMethod === 'card' && styles.selectedPaymentOption
+            ]}
+            onPress={() => {
+              setSelectedPaymentMethod('card');
+              setShowCardForm(true);
+            }}
+          >
+            <Text style={styles.paymentIcon}>💳</Text>
+            <Text style={styles.paymentLabel}>Tarjeta</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Payment Button */}
-      <TouchableOpacity
-        style={[styles.payButton, isProcessing && styles.payButtonDisabled]}
-        onPress={handlePayment}
-        disabled={isProcessing}
+      {/* Row Selection Modal */}
+      <Modal
+        visible={showRowDropdown}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRowDropdown(false)}
       >
-        {isProcessing ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.payButtonText}>Procesar Pago</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <SafeAreaView style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Row</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowRowDropdown(false)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </SafeAreaView>
+            
+            <FlatList
+              data={rowOptions}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.option,
+                    item === selectedRow && styles.selectedOption,
+                  ]}
+                  onPress={() => {
+                    setSelectedRow(item);
+                    setShowRowDropdown(false);
+                    setShowSeatDropdown(true);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      item === selectedRow && styles.selectedOptionText,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Seat Selection Modal */}
+      <Modal
+        visible={showSeatDropdown}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSeatDropdown(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <SafeAreaView style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Seat</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowSeatDropdown(false)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </SafeAreaView>
+            
+            <FlatList
+              data={seatOptions}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.option,
+                    item === selectedSeat && styles.selectedOption,
+                  ]}
+                  onPress={() => {
+                    setSelectedSeat(item);
+                    setShowSeatDropdown(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      item === selectedSeat && styles.selectedOptionText,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Card Form Modal */}
+      <Modal
+        visible={showCardForm}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCardForm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <SafeAreaView style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Card Details</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowCardForm(false)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </SafeAreaView>
+            
+            <View style={styles.cardForm}>
+              <TextInput
+                style={styles.cardInput}
+                placeholder="Card Number"
+                value={cardNumber}
+                onChangeText={setCardNumber}
+                keyboardType="numeric"
+                maxLength={16}
+              />
+              <View style={styles.cardRow}>
+                <TextInput
+                  style={[styles.cardInput, styles.halfInput]}
+                  placeholder="MM/YY"
+                  value={expiryDate}
+                  onChangeText={setExpiryDate}
+                  maxLength={5}
+                />
+                <TextInput
+                  style={[styles.cardInput, styles.halfInput]}
+                  placeholder="CVV"
+                  value={cvv}
+                  onChangeText={setCvv}
+                  keyboardType="numeric"
+                  maxLength={4}
+                />
+              </View>
+              <TextInput
+                style={styles.cardInput}
+                placeholder="Cardholder Name"
+                value={cardholderName}
+                onChangeText={setCardholderName}
+              />
+              <TouchableOpacity
+                style={styles.saveCardButton}
+                onPress={() => setShowCardForm(false)}
+              >
+                <Text style={styles.saveCardButtonText}>Save Card</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FA',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: 'white',
+  },
+  headerLeft: {
+    flex: 1,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
   },
-  backButton: {
-    padding: 8,
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
   },
-  backButtonText: {
-    fontSize: 16,
-    color: '#007AFF',
-  },
-  section: {
-    backgroundColor: '#fff',
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  ticketDetails: {
-    gap: 8,
-  },
-  ticketRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  ticketLabel: {
+  closeButtonText: {
     fontSize: 16,
-    color: '#666',
+    color: '#333',
   },
-  ticketValue: {
+  productList: {
+    flex: 1,
+    padding: 16,
+  },
+  productCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  productIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFF3E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  productIconText: {
+    fontSize: 20,
+  },
+  productInfo: {
+    flex: 1,
+  },
+  productName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
   },
-  seatInput: {
-    gap: 8,
-  },
-  inputLabel: {
-    fontSize: 16,
+  productPrice: {
+    fontSize: 14,
     color: '#666',
+    marginTop: 2,
   },
-  seatTextInput: {
-    backgroundColor: '#f8f8f8',
+  productQuantity: {
+    alignItems: 'center',
+  },
+  quantityText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  bottomBar: {
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    padding: 16,
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 16,
+  },
+  seatSection: {
+    alignItems: 'flex-start',
+  },
+  seatLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  seatButton: {
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  seatText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  totalSection: {
+    alignItems: 'flex-end',
+  },
+  totalLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  totalAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  paymentOption: {
+    flex: 1,
+    backgroundColor: '#333',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  selectedPaymentOption: {
+    backgroundColor: '#007AFF',
+  },
+  paymentIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  paymentLabel: {
+    fontSize: 14,
+    color: '#CCC',
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  option: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  selectedOption: {
+    backgroundColor: '#F0F8FF',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  selectedOptionText: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  cardForm: {
+    padding: 16,
+  },
+  cardInput: {
+    backgroundColor: '#F8F8F8',
     padding: 12,
     borderRadius: 8,
     fontSize: 16,
     color: '#333',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#E0E0E0',
+    marginBottom: 12,
   },
-  paymentMethods: {
+  cardRow: {
     flexDirection: 'row',
     gap: 12,
   },
-  paymentMethod: {
+  halfInput: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  },
+  saveCardButton: {
+    backgroundColor: '#007AFF',
     padding: 16,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
     borderRadius: 8,
-    gap: 8,
-  },
-  selectedPaymentMethod: {
-    borderColor: '#007AFF',
-    backgroundColor: '#f0f8ff',
-  },
-  paymentIcon: {
-    fontSize: 20,
-  },
-  paymentLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  cartItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  cartItemInfo: {
-    flex: 1,
-  },
-  cartItemName: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
-  },
-  cartItemQuantity: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  cartItemPrice: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  totalSection: {
-    backgroundColor: '#fff',
-    margin: 16,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  totalLabel: {
-    fontSize: 18,
-    color: '#666',
-    textAlign: 'center',
-  },
-  totalAmount: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    textAlign: 'center',
     marginTop: 8,
   },
-  payButton: {
-    backgroundColor: '#007AFF',
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  payButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  payButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  saveCardButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 }); 
