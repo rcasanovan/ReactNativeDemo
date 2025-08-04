@@ -12,8 +12,8 @@ import { CurrencyConverter } from '../utils/currencyConverter';
 interface ProductCardProps {
   product: Product;
   quantity: number;
-  onAdd: () => void;
-  onRemove: () => void;
+  onAdd: (product: Product) => void;
+  onRemove: (product: Product) => void;
   selectedCurrency: string;
 }
 
@@ -41,39 +41,40 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       imageStyle={styles.backgroundImage}
       resizeMode="cover"
     >
-      {/* Overlay for better text readability */}
       <View style={styles.overlay}>
-        {/* Top Section - Product Info */}
         <View style={styles.topSection}>
           <Text style={styles.productName} numberOfLines={2}>
             {product.name}
           </Text>
-          <Text style={styles.quantity}>{quantity} unidades</Text>
+          <Text style={styles.quantity}>
+            {quantity} unidades
+          </Text>
         </View>
         
-        {/* Bottom Section - Buttons */}
         <View style={styles.bottomSection}>
-          {/* Remove Button - Only show when quantity > 0 */}
           {quantity > 0 && (
-            <TouchableOpacity style={styles.removeButton} onPress={onRemove}>
+            <TouchableOpacity
+              style={styles.removeButton}
+              onPress={() => onRemove(product)}
+            >
               <Text style={styles.removeButtonText}>-</Text>
             </TouchableOpacity>
           )}
           
-          {/* Add Button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.addButton, 
+              styles.addButton,
               quantity === 0 && styles.addButtonLeft
-            ]} 
-            onPress={onAdd}
+            ]}
+            onPress={() => onAdd(product)}
           >
             <Text style={styles.addButtonText}>+</Text>
           </TouchableOpacity>
           
-          {/* Price Button */}
           <TouchableOpacity style={styles.priceButton}>
-            <Text style={styles.priceButtonText}>{formattedPrice}</Text>
+            <Text style={styles.priceButtonText}>
+              {CurrencyConverter.formatCurrency(product.price, product.currency)}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -83,9 +84,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: '48%', // Fixed width to ensure consistent sizing
     aspectRatio: 0.8, // Make it more rectangular (taller)
-    margin: 8,
+    margin: 4, // Small margin for spacing
     borderRadius: 12,
     overflow: 'hidden', // Ensure image doesn't overflow rounded corners
     shadowColor: '#000',
@@ -99,6 +100,8 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     borderRadius: 12,
+    width: '100%',
+    height: '100%',
   },
   overlay: {
     flex: 1,

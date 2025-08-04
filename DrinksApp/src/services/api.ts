@@ -20,6 +20,7 @@ export class ApiService {
         image: apiProduct.image,
         stock: apiProduct.inventory, // Map inventory to stock
         currency: 'EUR' as const, // Default to EUR since API doesn't provide currency
+        type: apiProduct.type, // Include type field for filtering
       }));
     } catch (error) {
       console.error('Error fetching products:', error);

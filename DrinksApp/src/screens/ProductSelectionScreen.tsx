@@ -33,9 +33,19 @@ export const ProductSelectionScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [showSaleTypeDropdown, setShowSaleTypeDropdown] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   const currencyOptions = ['EUR', 'USD', 'GBP'];
   const saleTypeOptions = ['Retail', 'Crew', 'Happy hour', 'Invitación business', 'Invitación turista'];
+
+  // Get unique product types for filter options
+  const productTypes = ['all', ...Array.from(new Set(products.map(product => product.type).filter((type): type is string => Boolean(type))))];
+
+  // Filter products based on selected filter
+  const filteredProducts = selectedFilter === 'all' 
+    ? products 
+    : products.filter(product => product.type === selectedFilter);
 
   useEffect(() => {
     loadProducts();
@@ -154,11 +164,31 @@ export const ProductSelectionScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-
+      {/* Filter Section */}
+      <View style={styles.filterSection}>
+        <TouchableOpacity 
+          style={styles.filterButton}
+          onPress={() => setShowFilterDropdown(true)}
+        >
+          <Text style={styles.filterButtonText}>
+            Filter: {selectedFilter === 'all' ? 'All Products' : selectedFilter}
+          </Text>
+          <Text style={styles.filterChevron}>▼</Text>
+        </TouchableOpacity>
+        
+        {selectedFilter !== 'all' && (
+          <TouchableOpacity 
+            style={styles.resetButton}
+            onPress={() => setSelectedFilter('all')}
+          >
+            <Text style={styles.resetButtonText}>Reset</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Product Grid */}
       <FlatList
-        data={products}
+        data={filteredProducts}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
         numColumns={2}
@@ -323,6 +353,57 @@ export const ProductSelectionScreen: React.FC = () => {
             </View>
           </Modal>
         )}
+
+        {/* Filter Dropdown Modal */}
+        {showFilterDropdown && (
+          <Modal
+            visible={showFilterDropdown}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowFilterDropdown(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <SafeAreaView style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Filter by Type</Text>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setShowFilterDropdown(false)}
+                  >
+                    <Text style={styles.closeButtonText}>✕</Text>
+                  </TouchableOpacity>
+                </SafeAreaView>
+                
+                <FlatList
+                  data={productTypes}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.option,
+                        item === selectedFilter && styles.selectedOption,
+                      ]}
+                      onPress={() => {
+                        console.log('Filter selected:', item);
+                        setSelectedFilter(item);
+                        setShowFilterDropdown(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.optionText,
+                          item === selectedFilter && styles.selectedOptionText,
+                        ]}
+                      >
+                        {item === 'all' ? 'All Products' : item}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </View>
+          </Modal>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -449,7 +530,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   productGrid: {
-    padding: 8,
+    padding: 4,
+    justifyContent: 'space-between', // Distribute cards evenly
   },
   bottomBar: {
     backgroundColor: 'white',
@@ -575,6 +657,45 @@ const styles = StyleSheet.create({
   },
   selectedOptionText: {
     color: '#007AFF',
+    fontWeight: '600',
+  },
+  filterSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0E0E0',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+    marginRight: 4,
+  },
+  filterChevron: {
+    fontSize: 12,
+    color: '#666',
+  },
+  resetButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 20,
+  },
+  resetButtonText: {
+    color: 'white',
+    fontSize: 14,
     fontWeight: '600',
   },
 }); 

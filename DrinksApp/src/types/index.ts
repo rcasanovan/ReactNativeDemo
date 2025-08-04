@@ -5,6 +5,7 @@ export interface Product {
   image?: string;
   stock: number;
   currency: Currency;
+  type?: string; // Add type field for filtering
 }
 
 export interface CartItem {
