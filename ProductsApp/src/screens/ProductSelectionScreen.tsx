@@ -155,13 +155,7 @@ export const ProductSelectionScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <Text style={styles.backButtonText}>‹</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Refrescos</Text>
-        <TouchableOpacity style={styles.clearButton}>
-          <Text style={styles.clearButtonText}>✕</Text>
-        </TouchableOpacity>
+        <Text style={styles.title}>Products</Text>
       </View>
 
       {/* Filter Section */}
@@ -187,15 +181,29 @@ export const ProductSelectionScreen: React.FC = () => {
       </View>
 
       {/* Product Grid */}
-      <FlatList
-        data={filteredProducts}
-        renderItem={renderProduct}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.productGrid}
-        showsVerticalScrollIndicator={false}
-        style={{ zIndex: 1 }} // Lower z-index to ensure dropdowns are on top
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading products...</Text>
+        </View>
+      ) : filteredProducts.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No products available</Text>
+          <Text style={styles.emptySubtext}>Please check your connection and try again</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadProducts}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredProducts}
+          renderItem={renderProduct}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.productGrid}
+          showsVerticalScrollIndicator={false}
+          style={{ zIndex: 1 }} // Lower z-index to ensure dropdowns are on top
+        />
+      )}
 
 
 
@@ -696,6 +704,48 @@ const styles = StyleSheet.create({
   resetButtonText: {
     color: 'white',
     fontSize: 14,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#333',
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
     fontWeight: '600',
   },
 }); 
