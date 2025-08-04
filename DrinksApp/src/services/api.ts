@@ -19,7 +19,7 @@ export class ApiService {
         price: apiProduct.price,
         image: apiProduct.image,
         stock: apiProduct.inventory, // Map inventory to stock
-        currency: 'EUR' as const, // Default to EUR since API doesn't provide currency
+        currency: 'USD' as const, // Default to USD since API provides prices in dollars
         type: apiProduct.type, // Include type field for filtering
       }));
     } catch (error) {

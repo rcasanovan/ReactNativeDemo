@@ -28,7 +28,7 @@ export const ProductSelectionScreen: React.FC = () => {
   const route = useRoute<ProductSelectionScreenRouteProp>();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('EUR');
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('USD');
   const [selectedSaleType, setSelectedSaleType] = useState<SaleType>('Retail');
   const [loading, setLoading] = useState(true);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
