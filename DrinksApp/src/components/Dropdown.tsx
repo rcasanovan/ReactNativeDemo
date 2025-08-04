@@ -35,7 +35,10 @@ export const Dropdown: React.FC<DropdownProps> = ({
     <>
       <TouchableOpacity
         style={styles.container}
-        onPress={() => setIsVisible(true)}
+        onPress={() => {
+          console.log('Dropdown pressed:', label);
+          setIsVisible(true);
+        }}
       >
         <View style={styles.content}>
           <Text style={styles.label}>{label}</Text>

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Alert,
+  Modal,
 } from 'react-native';
 import { ProductCard } from '../components/ProductCard';
 import { Dropdown } from '../components/Dropdown';
@@ -26,6 +27,7 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('EUR');
   const [selectedSaleType, setSelectedSaleType] = useState<SaleType>('Retail');
   const [loading, setLoading] = useState(true);
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
 
   const currencyOptions = ['EUR', 'USD', 'GBP'];
   const saleTypeOptions = ['Retail', 'Crew', 'Happy hour', 'Invitación business', 'Invitación turista'];
@@ -136,6 +138,8 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
         </TouchableOpacity>
       </View>
 
+
+
       {/* Product Grid */}
       <FlatList
         data={products}
@@ -144,6 +148,7 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
         numColumns={2}
         contentContainerStyle={styles.productGrid}
         showsVerticalScrollIndicator={false}
+        style={{ zIndex: 1 }} // Lower z-index to ensure dropdowns are on top
       />
 
       {/* Bottom Bar */}
@@ -152,7 +157,10 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
         <View style={styles.paymentButtonContainer}>
           <TouchableOpacity
             style={[styles.paymentButton, cart.length === 0 && styles.paymentButtonDisabled]}
-            onPress={handleProceedToPayment}
+            onPress={() => {
+              console.log('Payment button pressed!');
+              handleProceedToPayment();
+            }}
             disabled={cart.length === 0}
           >
             {/* Left Segment - Payment */}
@@ -164,10 +172,10 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
               </Text>
             </View>
             
-            {/* Right Segment - Business Type */}
+            {/* Right Segment - Sale Type */}
             <View style={styles.businessSegment}>
               <View style={styles.businessContent}>
-                <Text style={styles.businessText}>Business</Text>
+                <Text style={styles.businessText}>{selectedSaleType}</Text>
                 <Text style={styles.chevronIcon}>▼</Text>
               </View>
             </View>
@@ -176,11 +184,69 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
 
         {/* Alternative Currencies */}
         {Object.keys(alternativeCurrencies).length > 0 && (
-          <View style={styles.currencyDisplay}>
+          <TouchableOpacity 
+            style={styles.currencyDisplay}
+            onPress={() => {
+              console.log('Currency display pressed!');
+              // Show dropdown modal
+              setShowCurrencyDropdown(true);
+            }}
+          >
             <Text style={styles.currencyText}>
               {Object.values(alternativeCurrencies).join(' | ')}
             </Text>
-          </View>
+          </TouchableOpacity>
+        )}
+
+        {/* Currency Dropdown Modal */}
+        {showCurrencyDropdown && (
+          <Modal
+            visible={showCurrencyDropdown}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowCurrencyDropdown(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <SafeAreaView style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Select Currency</Text>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setShowCurrencyDropdown(false)}
+                  >
+                    <Text style={styles.closeButtonText}>✕</Text>
+                  </TouchableOpacity>
+                </SafeAreaView>
+                
+                <FlatList
+                  data={currencyOptions}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.option,
+                        item === selectedCurrency && styles.selectedOption,
+                      ]}
+                      onPress={() => {
+                        console.log('Currency selected from dropdown:', item);
+                        setSelectedCurrency(item as Currency);
+                        setShowCurrencyDropdown(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.optionText,
+                          item === selectedCurrency && styles.selectedOptionText,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </View>
+          </Modal>
         )}
       </View>
     </SafeAreaView>
@@ -230,6 +296,82 @@ const styles = StyleSheet.create({
   clearButtonText: {
     fontSize: 16,
     color: '#333',
+  },
+  selectionSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  dropdownRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  dropdownContainer: {
+    flex: 1,
+  },
+  simpleDropdown: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    zIndex: 1000, // Add high z-index
+    position: 'relative', // Ensure proper positioning
+  },
+  dropdownLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginRight: 8,
+  },
+  dropdownValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+  },
+  dropdownChevron: {
+    fontSize: 12,
+    color: '#666',
+  },
+  testButton: {
+    backgroundColor: '#FF0000',
+    padding: 16,
+    margin: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  testButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  testSection: {
+    padding: 16,
+    backgroundColor: '#F0F0F0',
+  },
+  testDropdown: {
+    backgroundColor: '#FF6B6B',
+    padding: 16,
+    marginVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  testDropdownText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   productGrid: {
     padding: 8,
@@ -302,5 +444,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  option: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  selectedOption: {
+    backgroundColor: '#F0F8FF',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  selectedOptionText: {
+    color: '#007AFF',
+    fontWeight: '600',
   },
 }); 
