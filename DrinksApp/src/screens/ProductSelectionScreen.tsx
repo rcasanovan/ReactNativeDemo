@@ -28,6 +28,7 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
   const [selectedSaleType, setSelectedSaleType] = useState<SaleType>('Retail');
   const [loading, setLoading] = useState(true);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const [showSaleTypeDropdown, setShowSaleTypeDropdown] = useState(false);
 
   const currencyOptions = ['EUR', 'USD', 'GBP'];
   const saleTypeOptions = ['Retail', 'Crew', 'Happy hour', 'Invitación business', 'Invitación turista'];
@@ -173,12 +174,18 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
             </View>
             
             {/* Right Segment - Sale Type */}
-            <View style={styles.businessSegment}>
+            <TouchableOpacity
+              style={styles.businessSegment}
+              onPress={() => {
+                console.log('Sale type segment pressed!');
+                setShowSaleTypeDropdown(true);
+              }}
+            >
               <View style={styles.businessContent}>
                 <Text style={styles.businessText}>{selectedSaleType}</Text>
                 <Text style={styles.chevronIcon}>▼</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </TouchableOpacity>
         </View>
 
@@ -237,6 +244,57 @@ export const ProductSelectionScreen: React.FC<ProductSelectionScreenProps> = ({
                         style={[
                           styles.optionText,
                           item === selectedCurrency && styles.selectedOptionText,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </View>
+          </Modal>
+        )}
+
+        {/* Sale Type Dropdown Modal */}
+        {showSaleTypeDropdown && (
+          <Modal
+            visible={showSaleTypeDropdown}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowSaleTypeDropdown(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <SafeAreaView style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Select Sale Type</Text>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setShowSaleTypeDropdown(false)}
+                  >
+                    <Text style={styles.closeButtonText}>✕</Text>
+                  </TouchableOpacity>
+                </SafeAreaView>
+                
+                <FlatList
+                  data={saleTypeOptions}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.option,
+                        item === selectedSaleType && styles.selectedOption,
+                      ]}
+                      onPress={() => {
+                        console.log('Sale type selected from dropdown:', item);
+                        setSelectedSaleType(item as SaleType);
+                        setShowSaleTypeDropdown(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.optionText,
+                          item === selectedSaleType && styles.selectedOptionText,
                         ]}
                       >
                         {item}
@@ -426,16 +484,21 @@ const styles = StyleSheet.create({
   businessContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    flex: 1,
+    paddingHorizontal: 4,
   },
   businessText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
+    flex: 1,
+    textAlign: 'center',
   },
   chevronIcon: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 10,
+    marginLeft: 2,
   },
   currencyDisplay: {
     alignItems: 'center',
