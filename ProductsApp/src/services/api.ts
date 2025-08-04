@@ -7,6 +7,13 @@ export class ApiService {
     try {
       console.log('Starting API request to:', `${BASE_URL}/products`);
       
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log('Request timeout triggered');
+        controller.abort();
+      }, 15000); // 15 second timeout
+      
       const response = await fetch(`${BASE_URL}/products`, {
         method: 'GET',
         headers: {
@@ -14,7 +21,10 @@ export class ApiService {
           'Content-Type': 'application/json',
           'User-Agent': 'ProductsApp/1.0',
         },
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       
       console.log('API response received:', response.status, response.statusText);
       
