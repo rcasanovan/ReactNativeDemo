@@ -63,6 +63,73 @@ export const PaymentScreen: React.FC = () => {
   const rowOptions = ['A', 'B', 'C', 'D', 'E', 'F'];
   const seatOptions = ['1', '2', '3', '4', '5', '6'];
 
+  // Validation functions
+  const validateCardNumber = (text: string) => {
+    // Only allow numbers and limit to 16 digits
+    const numbersOnly = text.replace(/[^0-9]/g, '');
+    return numbersOnly.slice(0, 16);
+  };
+
+  const validateExpiryDate = (text: string) => {
+    // Only allow numbers and forward slash
+    const cleaned = text.replace(/[^0-9/]/g, '');
+    
+    // Auto-insert slash after 2 digits
+    if (cleaned.length >= 2 && !cleaned.includes('/')) {
+      const month = cleaned.slice(0, 2);
+      const year = cleaned.slice(2);
+      
+      // Validate month range (01-12)
+      const monthNum = parseInt(month, 10);
+      if (monthNum < 1 || monthNum > 12) {
+        // If invalid month, only return the first digit if it could be valid
+        if (monthNum >= 10 && monthNum <= 19) {
+          return month.slice(0, 1);
+        }
+        return '';
+      }
+      
+      return month + (year ? '/' + year : '');
+    }
+    
+    // If we have a slash, validate the month part
+    if (cleaned.includes('/')) {
+      const parts = cleaned.split('/');
+      const month = parts[0];
+      const year = parts[1] || '';
+      
+      if (month.length === 2) {
+        const monthNum = parseInt(month, 10);
+        if (monthNum < 1 || monthNum > 12) {
+          // Return only the first digit if invalid
+          return month.slice(0, 1) + '/' + year;
+        }
+      }
+    }
+    
+    return cleaned;
+  };
+
+  const validateCVV = (text: string) => {
+    // Only allow numbers and limit to 4 digits
+    const numbersOnly = text.replace(/[^0-9]/g, '');
+    return numbersOnly.slice(0, 4);
+  };
+
+  const validateCardholderName = (text: string) => {
+    // Only allow letters, spaces, and common name characters
+    return text.replace(/[^a-zA-Z\s\-'\.]/g, '');
+  };
+
+  // Check if all card fields are completed and valid
+  const isCardFormComplete = cardNumber.trim() !== '' && 
+                            cardNumber.length === 16 &&
+                            expiryDate.trim() !== '' && 
+                            expiryDate.length === 5 &&
+                            cardholderName.trim() !== '' && 
+                            cvv.trim() !== '' &&
+                            cvv.length >= 3;
+
   const removeItem = (index: number) => {
     // Close the swipeable before removing the item
     if (swipeableRefs.current[index]) {
@@ -416,7 +483,7 @@ export const PaymentScreen: React.FC = () => {
                 style={styles.cardInput}
                 placeholder="Card Number"
                 value={cardNumber}
-                onChangeText={setCardNumber}
+                onChangeText={(text) => setCardNumber(validateCardNumber(text))}
                 keyboardType="numeric"
                 maxLength={16}
               />
@@ -425,14 +492,14 @@ export const PaymentScreen: React.FC = () => {
                   style={[styles.cardInput, styles.halfInput]}
                   placeholder="MM/YY"
                   value={expiryDate}
-                  onChangeText={setExpiryDate}
+                  onChangeText={(text) => setExpiryDate(validateExpiryDate(text))}
                   maxLength={5}
                 />
                 <TextInput
                   style={[styles.cardInput, styles.halfInput]}
                   placeholder="CVV"
                   value={cvv}
-                  onChangeText={setCvv}
+                  onChangeText={(text) => setCvv(validateCVV(text))}
                   keyboardType="numeric"
                   maxLength={4}
                 />
@@ -441,13 +508,26 @@ export const PaymentScreen: React.FC = () => {
                 style={styles.cardInput}
                 placeholder="Cardholder Name"
                 value={cardholderName}
-                onChangeText={setCardholderName}
+                onChangeText={(text) => setCardholderName(validateCardholderName(text))}
+                autoCapitalize="words"
               />
               <TouchableOpacity
-                style={styles.saveCardButton}
-                onPress={() => setShowCardForm(false)}
+                style={[
+                  styles.saveCardButton,
+                  !isCardFormComplete && styles.saveCardButtonDisabled
+                ]}
+                onPress={() => {
+                  if (isCardFormComplete) {
+                    setShowCardForm(false);
+                    handlePayment();
+                  }
+                }}
+                disabled={!isCardFormComplete}
               >
-                <Text style={styles.saveCardButtonText}>Save Card</Text>
+                <Text style={[
+                  styles.saveCardButtonText,
+                  !isCardFormComplete && styles.saveCardButtonTextDisabled
+                ]}>Pay</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -703,6 +783,13 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  saveCardButtonDisabled: {
+    backgroundColor: '#E5E5E5',
+    opacity: 0.6,
+  },
+  saveCardButtonTextDisabled: {
+    color: '#999',
   },
   deleteButtonContainer: {
     justifyContent: 'center',
