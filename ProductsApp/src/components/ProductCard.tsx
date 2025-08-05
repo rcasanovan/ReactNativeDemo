@@ -6,8 +6,9 @@ import {
   StyleSheet,
   ImageBackground,
 } from 'react-native';
-import { Product, Currency } from '../types';
+import { Product, Currency, SaleType } from '../types';
 import { CurrencyConverter } from '../utils/currencyConverter';
+import { DiscountCalculator } from '../utils/discountCalculator';
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +16,7 @@ interface ProductCardProps {
   onAdd: (product: Product) => void;
   onRemove: (product: Product) => void;
   selectedCurrency: string;
+  selectedSaleType: SaleType;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -23,16 +25,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAdd,
   onRemove,
   selectedCurrency,
+  selectedSaleType,
 }) => {
-  const convertedPrice = CurrencyConverter.convert(
+  // Calculate original price in selected currency
+  const originalPrice = CurrencyConverter.convert(
     product.price,
     product.currency,
-    selectedCurrency as any
+    selectedCurrency as Currency
   );
-  const formattedPrice = CurrencyConverter.formatCurrency(
-    convertedPrice,
-    selectedCurrency as any
-  );
+  
+  // Calculate discounted price
+  const discountedPrice = DiscountCalculator.calculateDiscountedPrice(originalPrice, selectedSaleType);
+  
+  // Format prices for display
+  const formattedOriginalPrice = CurrencyConverter.formatCurrency(originalPrice, selectedCurrency as Currency);
+  const formattedDiscountedPrice = CurrencyConverter.formatCurrency(discountedPrice, selectedCurrency as Currency);
+  
+  // Check if there's a discount
+  const hasDiscount = DiscountCalculator.hasDiscount(selectedSaleType);
 
   return (
     <ImageBackground
@@ -72,12 +82,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.priceButton}>
-            <Text style={styles.priceButtonText}>
-              {CurrencyConverter.formatCurrency(
-                CurrencyConverter.convert(product.price, product.currency, selectedCurrency as Currency),
-                selectedCurrency as Currency
-              )}
-            </Text>
+            {hasDiscount ? (
+              <View style={styles.priceContainer}>
+                <Text style={styles.originalPriceText}>{formattedOriginalPrice}</Text>
+                <Text style={styles.priceButtonText}>{formattedDiscountedPrice}</Text>
+              </View>
+            ) : (
+              <Text style={styles.priceButtonText}>{formattedDiscountedPrice}</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -195,5 +207,15 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  priceContainer: {
+    alignItems: 'center',
+  },
+  originalPriceText: {
+    color: '#FF6B6B',
+    fontSize: 10,
+    textDecorationLine: 'line-through',
+    textDecorationColor: '#FF6B6B',
+    marginBottom: 2,
   },
 }); 

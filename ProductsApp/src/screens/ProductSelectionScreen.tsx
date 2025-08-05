@@ -18,6 +18,7 @@ import { ProductCard } from '../components/ProductCard';
 import { Dropdown } from '../components/Dropdown';
 import { ApiService } from '../services/api';
 import { CurrencyConverter } from '../utils/currencyConverter';
+import { DiscountCalculator } from '../utils/discountCalculator';
 import { Product, CartItem, Currency, SaleType } from '../types';
 
 type ProductSelectionScreenRouteProp = RouteProp<RootStackParamList, 'ProductSelection'>;
@@ -52,11 +53,14 @@ export const ProductSelectionScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Handle updated cart from PaymentScreen
+    // Handle updated cart and sale type from PaymentScreen
     if (route.params?.updatedCart) {
       setCart(route.params.updatedCart);
     }
-  }, [route.params?.updatedCart]);
+    if (route.params?.selectedSaleType) {
+      setSelectedSaleType(route.params.selectedSaleType);
+    }
+  }, [route.params?.updatedCart, route.params?.selectedSaleType]);
 
   const loadProducts = async () => {
     try {
@@ -112,7 +116,8 @@ export const ProductSelectionScreen: React.FC = () => {
         item.product.currency,
         selectedCurrency
       );
-      return total + (convertedPrice * item.quantity);
+      const discountedPrice = DiscountCalculator.calculateDiscountedPrice(convertedPrice, selectedSaleType);
+      return total + (discountedPrice * item.quantity);
     }, 0);
   };
 
@@ -143,6 +148,7 @@ export const ProductSelectionScreen: React.FC = () => {
       onAdd={() => addToCart(item)}
       onRemove={() => removeFromCart(item)}
       selectedCurrency={selectedCurrency}
+      selectedSaleType={selectedSaleType}
     />
   );
 
@@ -238,6 +244,11 @@ export const ProductSelectionScreen: React.FC = () => {
             >
               <View style={styles.businessContent}>
                 <Text style={styles.businessText}>{selectedSaleType}</Text>
+                {DiscountCalculator.hasDiscount(selectedSaleType) && (
+                  <Text style={styles.discountText}>
+                    {DiscountCalculator.getDiscountText(selectedSaleType)}
+                  </Text>
+                )}
                 <Text style={styles.chevronIcon}>▼</Text>
               </View>
             </TouchableOpacity>
@@ -601,6 +612,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
     textAlign: 'center',
+  },
+  discountText: {
+    color: '#FFD700',
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 2,
   },
   chevronIcon: {
     color: 'white',

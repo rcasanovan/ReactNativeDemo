@@ -21,6 +21,7 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import { ApiService } from '../services/api';
 import { CartItem, Currency, SaleType } from '../types';
 import { CurrencyConverter } from '../utils/currencyConverter';
+import { DiscountCalculator } from '../utils/discountCalculator';
 
 type PaymentScreenRouteProp = RouteProp<RootStackParamList, 'Payment'>;
 type PaymentScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Payment'>;
@@ -89,11 +90,9 @@ export const PaymentScreen: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      const updatedTotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-      
       const paymentRequest = {
         items: cartItems,
-        total: updatedTotal,
+        total: total, // Use the discounted total passed from ProductSelectionScreen
         currency: currency as Currency,
         saleType: saleType as SaleType,
         seatNumber: seatNumber.trim(),
@@ -108,7 +107,10 @@ export const PaymentScreen: React.FC = () => {
           [
             {
               text: 'OK',
-              onPress: () => navigation.navigate('ProductSelection'),
+              onPress: () => navigation.navigate('ProductSelection', { 
+                updatedCart: cartItems,
+                selectedSaleType: saleType 
+              }),
             },
           ]
         );
@@ -135,7 +137,14 @@ export const PaymentScreen: React.FC = () => {
       product.currency,
       targetCurrency as Currency
     );
-    return CurrencyConverter.formatCurrency(convertedPrice * quantity, targetCurrency as Currency);
+    const discountedPrice = DiscountCalculator.calculateDiscountedPrice(convertedPrice, saleType);
+    const totalDiscountedPrice = discountedPrice * quantity;
+    
+    return {
+      originalPrice: CurrencyConverter.formatCurrency(convertedPrice * quantity, targetCurrency as Currency),
+      discountedPrice: CurrencyConverter.formatCurrency(totalDiscountedPrice, targetCurrency as Currency),
+      hasDiscount: DiscountCalculator.hasDiscount(saleType)
+    };
   };
 
   return (
@@ -149,8 +158,11 @@ export const PaymentScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => {
-            // Pass the updated cart back to ProductSelectionScreen
-            navigation.navigate('ProductSelection', { updatedCart: cartItems });
+            // Pass the updated cart and sale type back to ProductSelectionScreen
+            navigation.navigate('ProductSelection', { 
+              updatedCart: cartItems,
+              selectedSaleType: saleType 
+            });
           }}
         >
           <Text style={styles.closeButtonText}>✕</Text>
@@ -187,7 +199,17 @@ export const PaymentScreen: React.FC = () => {
               />
               <View style={styles.productInfo}>
                 <Text style={styles.productName}>{item.product.name}</Text>
-                <Text style={styles.productPrice}>{formatProductPrice(item.product, item.quantity, currency)}</Text>
+                {(() => {
+                  const priceInfo = formatProductPrice(item.product, item.quantity, currency);
+                  return priceInfo.hasDiscount ? (
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.originalPriceText}>{priceInfo.originalPrice}</Text>
+                      <Text style={styles.productPrice}>{priceInfo.discountedPrice}</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.productPrice}>{priceInfo.discountedPrice}</Text>
+                  );
+                })()}
               </View>
               <View style={styles.productQuantity}>
                 <Text style={styles.quantityText}>{item.quantity}</Text>
@@ -214,15 +236,13 @@ export const PaymentScreen: React.FC = () => {
           <View style={styles.totalSection}>
             <Text style={styles.totalLabel}>TOTAL</Text>
             <Text style={styles.totalAmount}>
-              {formatCurrency(cartItems.reduce((sum, item) => {
-                const convertedPrice = CurrencyConverter.convert(
-                  item.product.price,
-                  item.product.currency,
-                  currency as Currency
-                );
-                return sum + (convertedPrice * item.quantity);
-              }, 0), currency)}
+              {formatCurrency(total, currency)}
             </Text>
+            {DiscountCalculator.hasDiscount(saleType) && (
+              <Text style={styles.discountInfo}>
+                {DiscountCalculator.getDiscountText(saleType)} applied
+              </Text>
+            )}
           </View>
         </View>
 
@@ -511,6 +531,16 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
+  priceContainer: {
+    alignItems: 'flex-start',
+  },
+  originalPriceText: {
+    fontSize: 12,
+    color: '#FF6B6B',
+    textDecorationLine: 'line-through',
+    textDecorationColor: '#FF6B6B',
+    marginBottom: 2,
+  },
   productQuantity: {
     alignItems: 'center',
   },
@@ -562,6 +592,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+  },
+  discountInfo: {
+    fontSize: 10,
+    color: '#FF6B6B',
+    fontWeight: '600',
+    marginTop: 2,
   },
   paymentRow: {
     flexDirection: 'row',
