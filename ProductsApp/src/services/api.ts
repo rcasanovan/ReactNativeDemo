@@ -74,4 +74,53 @@ export class ApiService {
       throw new Error('Failed to process payment');
     }
   }
+
+  static async getPaymentResponse(transactionId: string): Promise<PaymentResponse> {
+    try {
+      console.log('Calling payment response endpoint with transaction ID:', transactionId);
+      
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log('Payment response request timeout triggered');
+        controller.abort();
+      }, 10000); // 10 second timeout
+      
+      const response = await fetch(`${BASE_URL}/paymentResponse`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'ProductsApp/1.0',
+        },
+        body: JSON.stringify({ transactionId }),
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      console.log('Payment response API response received:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Return the paymentResponse object from the API response
+      return data.paymentResponse || {
+        success: true,
+        message: 'Payment processed successfully',
+        transactionId: transactionId,
+      };
+    } catch (error) {
+      console.error('Error fetching payment response:', error);
+      if (error instanceof Error && error.message.includes('aborted')) {
+        console.log('Payment response request was aborted - likely timeout or network issue');
+        throw new Error('Request timeout - please check your connection');
+      }
+      console.log('Other error occurred:', error);
+      throw new Error('Failed to fetch payment response');
+    }
+  }
 } 

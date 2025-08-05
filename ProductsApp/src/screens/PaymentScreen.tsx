@@ -45,6 +45,8 @@ export const PaymentScreen: React.FC = () => {
   const [cardholderName, setCardholderName] = useState('');
   const [cvv, setCvv] = useState('');
   const [cartItems, setCartItems] = useState(cart);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<{ message: string; transactionId: string } | null>(null);
   const swipeableRefs = useRef<{ [key: number]: any }>({});
   
   const paymentMethods = [
@@ -168,19 +170,29 @@ export const PaymentScreen: React.FC = () => {
       const response = await ApiService.processPayment(paymentRequest);
 
       if (response.success) {
-        Alert.alert(
-          'Pago Exitoso',
-          `Transacción completada\nID: ${response.transactionId}`,
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.navigate('ProductSelection', { 
-                updatedCart: cartItems,
-                selectedSaleType: saleType 
-              }),
-            },
-          ]
-        );
+        // Call the payment response endpoint
+        try {
+          const paymentResponse = await ApiService.getPaymentResponse(response.transactionId!);
+          
+          if (paymentResponse.success) {
+            // Show confirmation modal with the response data
+            setConfirmationData({
+              message: paymentResponse.message,
+              transactionId: paymentResponse.transactionId || response.transactionId!
+            });
+            setShowConfirmationModal(true);
+          } else {
+            Alert.alert('Error', paymentResponse.message || 'Error al obtener la confirmación del pago');
+          }
+        } catch (error) {
+          console.error('Error fetching payment response:', error);
+          // Fallback to showing basic success message
+          setConfirmationData({
+            message: 'Payment processed successfully',
+            transactionId: response.transactionId!
+          });
+          setShowConfirmationModal(true);
+        }
       } else {
         Alert.alert('Error', response.message || 'Error al procesar el pago');
       }
@@ -204,13 +216,13 @@ export const PaymentScreen: React.FC = () => {
       product.currency,
       targetCurrency as Currency
     );
-    const discountedPrice = DiscountCalculator.calculateDiscountedPrice(convertedPrice, saleType);
+    const discountedPrice = DiscountCalculator.calculateDiscountedPrice(convertedPrice, saleType as SaleType);
     const totalDiscountedPrice = discountedPrice * quantity;
     
     return {
       originalPrice: CurrencyConverter.formatCurrency(convertedPrice * quantity, targetCurrency as Currency),
       discountedPrice: CurrencyConverter.formatCurrency(totalDiscountedPrice, targetCurrency as Currency),
-      hasDiscount: DiscountCalculator.hasDiscount(saleType)
+      hasDiscount: DiscountCalculator.hasDiscount(saleType as SaleType)
     };
   };
 
@@ -228,7 +240,7 @@ export const PaymentScreen: React.FC = () => {
             // Pass the updated cart and sale type back to ProductSelectionScreen
             navigation.navigate('ProductSelection', { 
               updatedCart: cartItems,
-              selectedSaleType: saleType 
+              selectedSaleType: saleType as SaleType
             });
           }}
         >
@@ -305,9 +317,9 @@ export const PaymentScreen: React.FC = () => {
             <Text style={styles.totalAmount}>
               {formatCurrency(total, currency)}
             </Text>
-            {DiscountCalculator.hasDiscount(saleType) && (
+            {DiscountCalculator.hasDiscount(saleType as SaleType) && (
               <Text style={styles.discountInfo}>
-                {DiscountCalculator.getDiscountText(saleType)} applied
+                {DiscountCalculator.getDiscountText(saleType as SaleType)} applied
               </Text>
             )}
           </View>
@@ -530,6 +542,49 @@ export const PaymentScreen: React.FC = () => {
                 ]}>Pay</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showConfirmationModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowConfirmationModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmationModalContent}>
+            <View style={styles.confirmationHeader}>
+              <Text style={styles.confirmationTitle}>✅ Payment Successful</Text>
+            </View>
+            
+            <View style={styles.confirmationBody}>
+              <Text style={styles.confirmationMessage}>
+                {confirmationData?.message || 'Payment processed successfully'}
+              </Text>
+              
+              <View style={styles.transactionIdContainer}>
+                <Text style={styles.transactionIdLabel}>Transaction ID:</Text>
+                <Text style={styles.transactionIdText}>
+                  {confirmationData?.transactionId || 'N/A'}
+                </Text>
+              </View>
+            </View>
+            
+            <TouchableOpacity
+              style={styles.confirmationButton}
+              onPress={() => {
+                setShowConfirmationModal(false);
+                // Reset cart and return to ProductSelectionScreen
+                navigation.navigate('ProductSelection', { 
+                  updatedCart: [], // Empty cart
+                  selectedSaleType: saleType as SaleType
+                });
+              }}
+            >
+              <Text style={styles.confirmationButtonText}>Continue Shopping</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -808,5 +863,69 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: 'white',
     fontSize: 20,
+  },
+  confirmationModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    margin: 32,
+    padding: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  confirmationHeader: {
+    backgroundColor: '#4CAF50',
+    padding: 20,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    alignItems: 'center',
+  },
+  confirmationTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  confirmationBody: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  confirmationMessage: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  transactionIdContainer: {
+    backgroundColor: '#F5F5F5',
+    padding: 16,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  transactionIdLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  transactionIdText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    fontFamily: 'monospace',
+  },
+  confirmationButton: {
+    backgroundColor: '#007AFF',
+    padding: 16,
+    margin: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  confirmationButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 }); 
