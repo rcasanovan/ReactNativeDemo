@@ -46,7 +46,10 @@ export const PaymentScreen: React.FC = () => {
   const [cvv, setCvv] = useState('');
   const [cartItems, setCartItems] = useState(cart);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [confirmationData, setConfirmationData] = useState<{ message: string; transactionId: string } | null>(null);
+  const [confirmationData, setConfirmationData] = useState<{ message: string; transactionId: string; isCashPayment?: boolean } | null>(null);
+  const [showCashAmountModal, setShowCashAmountModal] = useState(false);
+  const [cashAmount, setCashAmount] = useState('');
+  const [cashChange, setCashChange] = useState(0);
   const swipeableRefs = useRef<{ [key: number]: any }>({});
   
   const paymentMethods = [
@@ -123,6 +126,24 @@ export const PaymentScreen: React.FC = () => {
     return text.replace(/[^a-zA-Z\s\-'\.]/g, '');
   };
 
+  const validateCashAmount = (text: string) => {
+    // Only allow numbers and decimal point
+    const cleaned = text.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      return parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    // Limit to 2 decimal places
+    if (parts.length === 2 && parts[1].length > 2) {
+      return parts[0] + '.' + parts[1].slice(0, 2);
+    }
+    
+    return cleaned;
+  };
+
   // Check if all card fields are completed and valid
   const isCardFormComplete = cardNumber.trim() !== '' && 
                             cardNumber.length === 16 &&
@@ -143,19 +164,36 @@ export const PaymentScreen: React.FC = () => {
     setCartItems(newCart);
   };
 
-  const handlePayment = async () => {
+  const handlePayment = async (paymentMethod?: 'cash' | 'card') => {
+    const method = paymentMethod || selectedPaymentMethod;
+    console.log('handlePayment called with method:', method, 'selectedPaymentMethod:', selectedPaymentMethod);
+    console.log('Card details - cardNumber:', cardNumber, 'expiryDate:', expiryDate, 'cardholderName:', cardholderName, 'cvv:', cvv);
     const seatNumber = `${selectedRow}${selectedSeat}`;
     
     if (cartItems.length === 0) {
       Alert.alert('Error', 'No hay productos en el carrito');
       return;
     }
+
+    if (method === 'cash') {
+      console.log('Showing cash amount modal');
+      // Show cash amount input modal
+      setShowCashAmountModal(true);
+      return;
+    }
     
-    if (selectedPaymentMethod === 'card' && (!cardNumber || !expiryDate || !cardholderName || !cvv)) {
+    if (method === 'card' && (!cardNumber || !expiryDate || !cardholderName || !cvv)) {
+      console.log('Card validation failed - showing error');
       Alert.alert('Error', 'Por favor complete todos los datos de la tarjeta');
       return;
     }
 
+    console.log('Proceeding to processPayment');
+    await processPayment();
+  };
+
+  const processPayment = async () => {
+    const seatNumber = `${selectedRow}${selectedSeat}`;
     setIsProcessing(true);
 
     try {
@@ -178,7 +216,8 @@ export const PaymentScreen: React.FC = () => {
             // Show confirmation modal with the response data
             setConfirmationData({
               message: paymentResponse.message,
-              transactionId: paymentResponse.transactionId || response.transactionId!
+              transactionId: paymentResponse.transactionId || response.transactionId!,
+              isCashPayment: selectedPaymentMethod === 'cash'
             });
             setShowConfirmationModal(true);
           } else {
@@ -189,7 +228,8 @@ export const PaymentScreen: React.FC = () => {
           // Fallback to showing basic success message
           setConfirmationData({
             message: 'Payment processed successfully',
-            transactionId: response.transactionId!
+            transactionId: response.transactionId!,
+            isCashPayment: selectedPaymentMethod === 'cash'
           });
           setShowConfirmationModal(true);
         }
@@ -201,6 +241,30 @@ export const PaymentScreen: React.FC = () => {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleCashPayment = () => {
+    console.log('handleCashPayment called with cashAmount:', cashAmount);
+    const cashAmountNum = parseFloat(cashAmount);
+    
+    if (isNaN(cashAmountNum) || cashAmountNum <= 0) {
+      Alert.alert('Error', 'Por favor ingrese un monto válido');
+      return;
+    }
+    
+    if (cashAmountNum < total) {
+      Alert.alert('Error', `El monto debe ser al menos ${formatCurrency(total, currency)}`);
+      return;
+    }
+    
+    // Calculate change
+    const change = cashAmountNum - total;
+    setCashChange(change);
+    
+    // Close cash amount modal and process payment
+    setShowCashAmountModal(false);
+    setCashAmount(''); // Reset cash amount
+    processPayment();
   };
 
   const formatCurrency = (amount: number, curr: string) => {
@@ -334,8 +398,13 @@ export const PaymentScreen: React.FC = () => {
               cartItems.length === 0 && styles.paymentOptionDisabled
             ]}
             onPress={() => {
+              console.log('Cash button pressed');
               if (cartItems.length === 0) return;
+              console.log('Setting payment method to cash');
               setSelectedPaymentMethod('cash');
+              // Trigger payment immediately for cash with explicit cash parameter
+              console.log('Calling handlePayment from cash button');
+              handlePayment('cash');
             }}
             disabled={cartItems.length === 0}
           >
@@ -546,6 +615,76 @@ export const PaymentScreen: React.FC = () => {
         </View>
       </Modal>
 
+      {/* Cash Amount Modal */}
+      <Modal
+        visible={showCashAmountModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCashAmountModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <SafeAreaView style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Cash Payment</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => {
+                  setShowCashAmountModal(false);
+                  setCashAmount(''); // Reset cash amount when modal is closed
+                }}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </SafeAreaView>
+            
+            <View style={styles.cashForm}>
+              <View style={styles.cashAmountSection}>
+                <Text style={styles.cashAmountLabel}>Total to Pay:</Text>
+                <Text style={styles.cashAmountTotal}>{formatCurrency(total, currency)}</Text>
+              </View>
+              
+              <View style={styles.cashInputSection}>
+                <Text style={styles.cashInputLabel}>Amount Received:</Text>
+                <TextInput
+                  style={styles.cashInput}
+                  placeholder="0.00"
+                  value={cashAmount}
+                  onChangeText={(text) => setCashAmount(validateCashAmount(text))}
+                  keyboardType="numeric"
+                  autoFocus
+                />
+              </View>
+              
+              {cashAmount && parseFloat(cashAmount) > 0 && (
+                <View style={styles.changeSection}>
+                  <Text style={styles.changeLabel}>Change:</Text>
+                  <Text style={[
+                    styles.changeAmount,
+                    parseFloat(cashAmount) < total ? styles.changeAmountNegative : styles.changeAmountPositive
+                  ]}>
+                    {formatCurrency(parseFloat(cashAmount) - total, currency)}
+                  </Text>
+                </View>
+              )}
+              
+              <TouchableOpacity
+                style={[
+                  styles.processCashButton,
+                  (!cashAmount || parseFloat(cashAmount) < total) && styles.processCashButtonDisabled
+                ]}
+                onPress={handleCashPayment}
+                disabled={!cashAmount || parseFloat(cashAmount) < total}
+              >
+                <Text style={[
+                  styles.processCashButtonText,
+                  (!cashAmount || parseFloat(cashAmount) < total) && styles.processCashButtonTextDisabled
+                ]}>Process Payment</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Confirmation Modal */}
       <Modal
         visible={showConfirmationModal}
@@ -564,12 +703,21 @@ export const PaymentScreen: React.FC = () => {
                 {confirmationData?.message || 'Payment processed successfully'}
               </Text>
               
-              <View style={styles.transactionIdContainer}>
-                <Text style={styles.transactionIdLabel}>Transaction ID:</Text>
-                <Text style={styles.transactionIdText}>
-                  {confirmationData?.transactionId || 'N/A'}
-                </Text>
-              </View>
+              {confirmationData?.isCashPayment && cashChange > 0 && (
+                <View style={styles.changeContainer}>
+                  <Text style={styles.changeLabel}>Change:</Text>
+                  <Text style={styles.changeAmount}>{formatCurrency(cashChange, currency)}</Text>
+                </View>
+              )}
+              
+              {!confirmationData?.isCashPayment && (
+                <View style={styles.transactionIdContainer}>
+                  <Text style={styles.transactionIdLabel}>Transaction ID:</Text>
+                  <Text style={styles.transactionIdText}>
+                    {confirmationData?.transactionId || 'N/A'}
+                  </Text>
+                </View>
+              )}
             </View>
             
             <TouchableOpacity
@@ -927,5 +1075,89 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  cashForm: {
+    padding: 16,
+  },
+  cashAmountSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  cashAmountLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  cashAmountTotal: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  cashInputSection: {
+    marginBottom: 20,
+  },
+  cashInputLabel: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  cashInput: {
+    backgroundColor: '#F8F8F8',
+    padding: 16,
+    borderRadius: 8,
+    fontSize: 24,
+    color: '#333',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  changeSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+  },
+  changeLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  changeAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  changeAmountPositive: {
+    color: '#4CAF50',
+  },
+  changeAmountNegative: {
+    color: '#F44336',
+  },
+  processCashButton: {
+    backgroundColor: '#007AFF',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  processCashButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  processCashButtonDisabled: {
+    backgroundColor: '#E5E5E5',
+    opacity: 0.6,
+  },
+  processCashButtonTextDisabled: {
+    color: '#999',
+  },
+  changeContainer: {
+    backgroundColor: '#E8F5E8',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 20,
+    alignItems: 'center',
   },
 }); 
