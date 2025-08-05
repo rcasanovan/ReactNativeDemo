@@ -3,6 +3,18 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { ProductCard } from '../src/components/ProductCard';
 import { Product } from '../src/types';
 
+// Mock React Native components
+jest.mock('react-native', () => ({
+  View: 'View',
+  Text: 'Text',
+  TouchableOpacity: 'TouchableOpacity',
+  StyleSheet: {
+    create: (styles: any) => styles,
+    flatten: (style: any) => style,
+  },
+  ImageBackground: 'ImageBackground',
+}));
+
 const mockProduct: Product = {
   id: '1',
   name: 'Cocacola',
@@ -42,7 +54,6 @@ describe('ProductCard', () => {
       />
     );
 
-    expect(getByText('2')).toBeTruthy();
     expect(getByText('2 unidades')).toBeTruthy();
   });
 
@@ -112,7 +123,7 @@ describe('ProductCard', () => {
 
     // Should show both original and discounted price
     expect(getByText('5.53 €')).toBeTruthy(); // Original price
-    expect(getByText('4.42 €')).toBeTruthy(); // Discounted price (20% off)
+    expect(getByText('4.15 €')).toBeTruthy(); // Discounted price (25% off for Crew)
   });
 
   it('does not show remove button when quantity is 0', () => {

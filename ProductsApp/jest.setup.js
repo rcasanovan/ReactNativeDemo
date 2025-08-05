@@ -29,7 +29,9 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 // Mock react-native-gesture-handler
-jest.mock('react-native-gesture-handler', () => {});
+jest.mock('react-native-gesture-handler', () => ({
+  Swipeable: ({ children }) => children,
+}));
 
 // Mock Image component
 jest.mock('react-native/Libraries/Image/Image', () => ({
