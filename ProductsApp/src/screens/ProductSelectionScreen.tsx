@@ -228,8 +228,8 @@ export const ProductSelectionScreen: React.FC = () => {
             {/* Left Segment - Payment */}
             <View style={styles.paymentSegment}>
               <Text style={styles.paymentText}>
-                PAGAR <Text style={styles.paymentAmount}>
-                  {CurrencyConverter.formatCurrency(total, selectedCurrency).split(' ')[1]}
+                PAGAR $ <Text style={styles.paymentAmount}>
+                  {total.toFixed(2)}
                 </Text> {selectedCurrency}
               </Text>
             </View>
