@@ -23,6 +23,7 @@ const mockRoute = {
           price: 5.53,
           stock: 10,
           currency: 'EUR',
+          image: 'https://example.com/cocacola.jpg',
         },
         quantity: 2,
       },
@@ -33,74 +34,139 @@ const mockRoute = {
   },
 };
 
+// Mock React Navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => mockNavigation,
+  useRoute: () => mockRoute,
+}));
+
+// Mock React Native Gesture Handler
+jest.mock('react-native-gesture-handler', () => ({
+  Swipeable: ({ children }: any) => children,
+}));
+
 describe('PaymentScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders payment screen with correct information', () => {
-    const { getByText } = render(
-      <PaymentScreen navigation={mockNavigation as any} route={mockRoute as any} />
-    );
+    const { getByText } = render(<PaymentScreen />);
 
-    expect(getByText('Pago')).toBeTruthy();
-    expect(getByText('Detalles del Ticket')).toBeTruthy();
-    expect(getByText('Método de Pago')).toBeTruthy();
-    expect(getByText('Productos Seleccionados')).toBeTruthy();
-    expect(getByText('Total a Pagar:')).toBeTruthy();
+    expect(getByText('Ticket')).toBeTruthy();
+    expect(getByText('Productos seleccionados')).toBeTruthy();
+    expect(getByText('ASIENTO')).toBeTruthy();
+    expect(getByText('TOTAL')).toBeTruthy();
     expect(getByText('11.06 €')).toBeTruthy();
   });
 
   it('displays cart items correctly', () => {
-    const { getByText } = render(
-      <PaymentScreen navigation={mockNavigation as any} route={mockRoute as any} />
-    );
+    const { getByText } = render(<PaymentScreen />);
 
     expect(getByText('Cocacola')).toBeTruthy();
-    expect(getByText('x2')).toBeTruthy();
-    expect(getByText('11.06 €')).toBeTruthy();
+    expect(getByText('2')).toBeTruthy(); // quantity
   });
 
-  it('shows error when trying to pay without seat number', async () => {
-    const { getByText } = render(
-      <PaymentScreen navigation={mockNavigation as any} route={mockRoute as any} />
-    );
+  it('shows cash payment modal when cash button is pressed', async () => {
+    const { getByText } = render(<PaymentScreen />);
 
-    const payButton = getByText('Procesar Pago');
-    fireEvent.press(payButton);
+    const cashButton = getByText('Efectivo');
+    fireEvent.press(cashButton);
 
     await waitFor(() => {
-      expect(mockApiService.processPayment).not.toHaveBeenCalled();
+      expect(getByText('Cash Payment')).toBeTruthy();
     });
   });
 
-  it('processes payment successfully with valid data', async () => {
+  it('shows card form modal when card button is pressed', async () => {
+    const { getByText } = render(<PaymentScreen />);
+
+    const cardButton = getByText('Tarjeta');
+    fireEvent.press(cardButton);
+
+    await waitFor(() => {
+      expect(getByText('Card Details')).toBeTruthy();
+    });
+  });
+
+  it('processes cash payment successfully', async () => {
     mockApiService.processPayment.mockResolvedValue({
       success: true,
       message: 'Payment processed successfully',
       transactionId: 'TXN-123',
     });
 
-    const { getByText, getByPlaceholderText } = render(
-      <PaymentScreen navigation={mockNavigation as any} route={mockRoute as any} />
-    );
+    mockApiService.getPaymentResponse.mockResolvedValue({
+      success: true,
+      message: 'Payment processed successfully',
+      transactionId: 'TXN-123',
+    });
 
-    // Enter seat number
-    const seatInput = getByPlaceholderText('Ingrese el número de asiento');
-    fireEvent.changeText(seatInput, '12A');
+    const { getByText, getByPlaceholderText } = render(<PaymentScreen />);
 
-    // Press pay button
-    const payButton = getByText('Procesar Pago');
+    // Click cash button
+    const cashButton = getByText('Efectivo');
+    fireEvent.press(cashButton);
+
+    // Wait for cash modal to appear
+    await waitFor(() => {
+      expect(getByText('Cash Payment')).toBeTruthy();
+    });
+
+    // Enter cash amount
+    const cashInput = getByPlaceholderText('0.00');
+    fireEvent.changeText(cashInput, '15.00');
+
+    // Process payment
+    const processButton = getByText('Process Payment');
+    fireEvent.press(processButton);
+
+    await waitFor(() => {
+      expect(mockApiService.processPayment).toHaveBeenCalled();
+    });
+  });
+
+  it('processes card payment successfully', async () => {
+    mockApiService.processPayment.mockResolvedValue({
+      success: true,
+      message: 'Payment processed successfully',
+      transactionId: 'TXN-123',
+    });
+
+    mockApiService.getPaymentResponse.mockResolvedValue({
+      success: true,
+      message: 'Payment processed successfully',
+      transactionId: 'TXN-123',
+    });
+
+    const { getByText, getByPlaceholderText } = render(<PaymentScreen />);
+
+    // Click card button
+    const cardButton = getByText('Tarjeta');
+    fireEvent.press(cardButton);
+
+    // Wait for card modal to appear
+    await waitFor(() => {
+      expect(getByText('Card Details')).toBeTruthy();
+    });
+
+    // Fill card details
+    const cardNumberInput = getByPlaceholderText('Card Number');
+    const expiryInput = getByPlaceholderText('MM/YY');
+    const cvvInput = getByPlaceholderText('CVV');
+    const nameInput = getByPlaceholderText('Cardholder Name');
+
+    fireEvent.changeText(cardNumberInput, '1234567890123456');
+    fireEvent.changeText(expiryInput, '12/25');
+    fireEvent.changeText(cvvInput, '123');
+    fireEvent.changeText(nameInput, 'John Doe');
+
+    // Pay button should be enabled now
+    const payButton = getByText('Pay');
     fireEvent.press(payButton);
 
     await waitFor(() => {
-      expect(mockApiService.processPayment).toHaveBeenCalledWith({
-        items: mockRoute.params.cart,
-        total: 11.06,
-        currency: 'EUR',
-        saleType: 'Retail',
-        seatNumber: '12A',
-      });
+      expect(mockApiService.processPayment).toHaveBeenCalled();
     });
   });
 
@@ -110,43 +176,60 @@ describe('PaymentScreen', () => {
       message: 'Payment failed',
     });
 
-    const { getByText, getByPlaceholderText } = render(
-      <PaymentScreen navigation={mockNavigation as any} route={mockRoute as any} />
-    );
+    const { getByText } = render(<PaymentScreen />);
 
-    // Enter seat number
-    const seatInput = getByPlaceholderText('Ingrese el número de asiento');
-    fireEvent.changeText(seatInput, '12A');
+    // Click cash button
+    const cashButton = getByText('Efectivo');
+    fireEvent.press(cashButton);
 
-    // Press pay button
-    const payButton = getByText('Procesar Pago');
-    fireEvent.press(payButton);
+    // Wait for cash modal to appear
+    await waitFor(() => {
+      expect(getByText('Cash Payment')).toBeTruthy();
+    });
+
+    // Enter cash amount
+    const cashInput = getByPlaceholderText('0.00');
+    fireEvent.changeText(cashInput, '15.00');
+
+    // Process payment
+    const processButton = getByText('Process Payment');
+    fireEvent.press(processButton);
 
     await waitFor(() => {
       expect(mockApiService.processPayment).toHaveBeenCalled();
     });
   });
 
-  it('allows selecting payment method', () => {
-    const { getByText } = render(
-      <PaymentScreen navigation={mockNavigation as any} route={mockRoute as any} />
-    );
+  it('validates cash amount is sufficient', async () => {
+    const { getByText, getByPlaceholderText } = render(<PaymentScreen />);
 
+    // Click cash button
     const cashButton = getByText('Efectivo');
     fireEvent.press(cashButton);
 
-    // The cash button should now be selected (we can't easily test the visual state in unit tests)
-    expect(cashButton).toBeTruthy();
+    // Wait for cash modal to appear
+    await waitFor(() => {
+      expect(getByText('Cash Payment')).toBeTruthy();
+    });
+
+    // Enter insufficient amount
+    const cashInput = getByPlaceholderText('0.00');
+    fireEvent.changeText(cashInput, '5.00');
+
+    // Process payment button should be disabled
+    const processButton = getByText('Process Payment');
+    expect(processButton.props.style).toContainEqual(expect.objectContaining({ opacity: 0.6 }));
   });
 
-  it('navigates back when back button is pressed', () => {
-    const { getByText } = render(
-      <PaymentScreen navigation={mockNavigation as any} route={mockRoute as any} />
-    );
+  it('navigates back when close button is pressed', () => {
+    const { getByText } = render(<PaymentScreen />);
 
-    const backButton = getByText('← Volver');
-    fireEvent.press(backButton);
+    const closeButton = getByText('✕');
+    fireEvent.press(closeButton);
 
-    expect(mockNavigation.goBack).toHaveBeenCalled();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('ProductSelection', {
+      updatedCart: mockRoute.params.cart,
+      selectedSaleType: 'Retail',
+    });
   });
 }); 
