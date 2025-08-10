@@ -6,7 +6,8 @@ import {
   StyleSheet,
   ImageBackground,
 } from 'react-native';
-import { Product, Currency, SaleType } from '../types';
+import { Product } from '../models/Product';
+import { Currency, SaleType } from '../types';
 import { CurrencyConverter } from '../utils/currencyConverter';
 import { DiscountCalculator } from '../utils/discountCalculator';
 
@@ -15,7 +16,7 @@ interface ProductCardProps {
   quantity: number;
   onAdd: (product: Product) => void;
   onRemove: (product: Product) => void;
-  selectedCurrency: string;
+  selectedCurrency: Currency;
   selectedSaleType: SaleType;
 }
 
@@ -31,15 +32,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const originalPrice = CurrencyConverter.convert(
     product.price,
     product.currency,
-    selectedCurrency as Currency
+    selectedCurrency
   );
   
   // Calculate discounted price
   const discountedPrice = DiscountCalculator.calculateDiscountedPrice(originalPrice, selectedSaleType);
   
   // Format prices for display
-  const formattedOriginalPrice = CurrencyConverter.formatCurrency(originalPrice, selectedCurrency as Currency);
-  const formattedDiscountedPrice = CurrencyConverter.formatCurrency(discountedPrice, selectedCurrency as Currency);
+  const formattedOriginalPrice = CurrencyConverter.formatCurrency(originalPrice, selectedCurrency);
+  const formattedDiscountedPrice = CurrencyConverter.formatCurrency(discountedPrice, selectedCurrency);
   
   // Check if there's a discount
   const hasDiscount = DiscountCalculator.hasDiscount(selectedSaleType);

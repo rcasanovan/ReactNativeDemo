@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { ProductSelectionScreen } from '../screens/ProductSelectionScreen';
-import { PaymentScreen } from '../screens/PaymentScreen';
+import { ProductSelectionView } from '../views/ProductSelectionView';
+import { PaymentView } from '../views/PaymentView';
 
 export type RootStackParamList = {
   ProductSelection: { updatedCart?: any[]; selectedSaleType?: 'Retail' | 'Crew' | 'Happy hour' | 'Invitación business' | 'Invitación turista' } | undefined;
@@ -10,7 +10,7 @@ export type RootStackParamList = {
     cart: any[];
     total: number;
     currency: string;
-    saleType: string;
+    saleType: 'Retail' | 'Crew' | 'Happy hour' | 'Invitación business' | 'Invitación turista';
   };
 };
 
@@ -27,11 +27,11 @@ export const AppNavigator: React.FC = () => {
       >
         <Stack.Screen
           name="ProductSelection"
-          component={ProductSelectionScreen}
+          component={ProductSelectionView}
         />
         <Stack.Screen
           name="Payment"
-          component={PaymentScreen}
+          component={PaymentView}
         />
       </Stack.Navigator>
     </NavigationContainer>

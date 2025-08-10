@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,141 +19,42 @@ import {
 import { Swipeable } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { observer } from 'mobx-react-lite';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { ApiService } from '../services/api';
+import { useAppStore } from '../contexts/AppContext';
 import { CartItem, Currency, SaleType } from '../types';
 import { CurrencyConverter } from '../utils/currencyConverter';
 import { DiscountCalculator } from '../utils/discountCalculator';
 
-type PaymentScreenRouteProp = RouteProp<RootStackParamList, 'Payment'>;
-type PaymentScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Payment'>;
+type PaymentViewRouteProp = RouteProp<RootStackParamList, 'Payment'>;
+type PaymentViewNavigationProp = StackNavigationProp<RootStackParamList, 'Payment'>;
 
-export const PaymentScreen: React.FC = () => {
-  const navigation = useNavigation<PaymentScreenNavigationProp>();
-  const route = useRoute<PaymentScreenRouteProp>();
-  const { cart, total, currency, saleType } = route.params;
+export const PaymentView: React.FC = observer(() => {
+  const navigation = useNavigation<PaymentViewNavigationProp>();
+  const route = useRoute<PaymentViewRouteProp>();
+  const { store } = useAppStore();
+  const viewModel = store.paymentViewModel;
+
+  useEffect(() => {
+    viewModel.initializePayment(route.params);
+  }, [route.params]);
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'card'>('card');
   const [selectedRow, setSelectedRow] = useState('A');
   const [selectedSeat, setSelectedSeat] = useState('1');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showRowDropdown, setShowRowDropdown] = useState(false);
   const [showSeatDropdown, setShowSeatDropdown] = useState(false);
-  const [showCardForm, setShowCardForm] = useState(false);
-  
-  // Card form state
-    const [cardNumber, setCardNumber] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [cardholderName, setCardholderName] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [cartItems, setCartItems] = useState(cart);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [confirmationData, setConfirmationData] = useState<{ message: string; transactionId: string; isCashPayment?: boolean } | null>(null);
-  const [showCashAmountModal, setShowCashAmountModal] = useState(false);
-  const [cashAmount, setCashAmount] = useState('');
-  const [cashChange, setCashChange] = useState(0);
   const swipeableRefs = useRef<{ [key: number]: any }>({});
-  
-  const paymentMethods = [
-    { id: 'card', label: 'Tarjeta', icon: '💳' },
-    { id: 'cash', label: 'Efectivo', icon: '💵' },
-  ];
 
-  const saleTypes: { id: SaleType; label: string }[] = [
-    { id: 'Retail', label: 'Retail' },
-    { id: 'Crew', label: 'Crew' },
-    { id: 'Happy hour', label: 'Happy hour' },
-    { id: 'Invitación business', label: 'Invitación business' },
-    { id: 'Invitación turista', label: 'Invitación turista' },
-  ];
+  // Local state for input fields
+  const [cardNumberInput, setCardNumberInput] = useState('');
+  const [expiryDateInput, setExpiryDateInput] = useState('');
+  const [cvvInput, setCvvInput] = useState('');
+  const [cardholderNameInput, setCardholderNameInput] = useState('');
+  const [cashAmountInput, setCashAmountInput] = useState('');
 
   const rowOptions = ['A', 'B', 'C', 'D', 'E', 'F'];
   const seatOptions = ['1', '2', '3', '4', '5', '6'];
-
-  // Validation functions
-  const validateCardNumber = (text: string) => {
-    // Only allow numbers and limit to 16 digits
-    const numbersOnly = text.replace(/[^0-9]/g, '');
-    return numbersOnly.slice(0, 16);
-  };
-
-  const validateExpiryDate = (text: string) => {
-    // Only allow numbers and forward slash
-    const cleaned = text.replace(/[^0-9/]/g, '');
-    
-    // Auto-insert slash after 2 digits
-    if (cleaned.length >= 2 && !cleaned.includes('/')) {
-      const month = cleaned.slice(0, 2);
-      const year = cleaned.slice(2);
-      
-      // Validate month range (01-12)
-      const monthNum = parseInt(month, 10);
-      if (monthNum < 1 || monthNum > 12) {
-        // If invalid month, only return the first digit if it could be valid
-        if (monthNum >= 10 && monthNum <= 19) {
-          return month.slice(0, 1);
-        }
-        return '';
-      }
-      
-      return month + (year ? '/' + year : '');
-    }
-    
-    // If we have a slash, validate the month part
-    if (cleaned.includes('/')) {
-      const parts = cleaned.split('/');
-      const month = parts[0];
-      const year = parts[1] || '';
-      
-      if (month.length === 2) {
-        const monthNum = parseInt(month, 10);
-        if (monthNum < 1 || monthNum > 12) {
-          // Return only the first digit if invalid
-          return month.slice(0, 1) + '/' + year;
-        }
-      }
-    }
-    
-    return cleaned;
-  };
-
-  const validateCVV = (text: string) => {
-    // Only allow numbers and limit to 4 digits
-    const numbersOnly = text.replace(/[^0-9]/g, '');
-    return numbersOnly.slice(0, 4);
-  };
-
-  const validateCardholderName = (text: string) => {
-    // Only allow letters, spaces, and common name characters
-    return text.replace(/[^a-zA-Z\s\-'\.]/g, '');
-  };
-
-  const validateCashAmount = (text: string) => {
-    // Only allow numbers and decimal point
-    const cleaned = text.replace(/[^0-9.]/g, '');
-    
-    // Ensure only one decimal point
-    const parts = cleaned.split('.');
-    if (parts.length > 2) {
-      return parts[0] + '.' + parts.slice(1).join('');
-    }
-    
-    // Limit to 2 decimal places
-    if (parts.length === 2 && parts[1].length > 2) {
-      return parts[0] + '.' + parts[1].slice(0, 2);
-    }
-    
-    return cleaned;
-  };
-
-  // Check if all card fields are completed and valid
-  const isCardFormComplete = cardNumber.trim() !== '' && 
-                            cardNumber.length === 16 &&
-                            expiryDate.trim() !== '' && 
-                            expiryDate.length === 5 &&
-                            cardholderName.trim() !== '' && 
-                            cvv.trim() !== '' &&
-                            cvv.length >= 3;
 
   const removeItem = (index: number) => {
     // Close the swipeable before removing the item
@@ -161,18 +62,19 @@ export const PaymentScreen: React.FC = () => {
       swipeableRefs.current[index].close();
     }
     
-    const newCart = [...cartItems];
+    const newCart = [...viewModel.cartItems];
     newCart.splice(index, 1);
-    setCartItems(newCart);
+    // Update the cart in the viewModel
+    viewModel.updateCart(newCart);
   };
 
   const handlePayment = async (paymentMethod?: 'cash' | 'card') => {
     const method = paymentMethod || selectedPaymentMethod;
     console.log('handlePayment called with method:', method, 'selectedPaymentMethod:', selectedPaymentMethod);
-    console.log('Card details - cardNumber:', cardNumber, 'expiryDate:', expiryDate, 'cardholderName:', cardholderName, 'cvv:', cvv);
+    console.log('Card details - cardNumber:', viewModel.cardNumber, 'expiryDate:', viewModel.expiryDate, 'cardholderName:', viewModel.cardholderName, 'cvv:', viewModel.cvv);
     const seatNumber = `${selectedRow}${selectedSeat}`;
     
-    if (cartItems.length === 0) {
+    if (viewModel.cartItems.length === 0) {
       Alert.alert('Error', 'No hay productos en el carrito');
       return;
     }
@@ -180,93 +82,46 @@ export const PaymentScreen: React.FC = () => {
     if (method === 'cash') {
       console.log('Showing cash amount modal');
       // Show cash amount input modal
-      setShowCashAmountModal(true);
+      viewModel.showCashPaymentModal();
       return;
     }
     
-    if (method === 'card' && (!cardNumber || !expiryDate || !cardholderName || !cvv)) {
-      console.log('Card validation failed - showing error');
-      Alert.alert('Error', 'Por favor complete todos los datos de la tarjeta');
-      return;
+    if (method === 'card') {
+      // Direct validation using local state
+      const cardNumberValid = cardNumberInput.length === 16;
+      const expiryDateValid = expiryDateInput.replace(/[^0-9]/g, '').length === 4;
+      const cvvValid = cvvInput.length === 3;
+      const cardholderNameValid = cardholderNameInput.trim().length > 0;
+      
+      const isFormValid = cardNumberValid && expiryDateValid && cvvValid && cardholderNameValid;
+      
+      if (!isFormValid) {
+        const validationDetails = `
+Card Number: ${cardNumberInput.length}/16 (${cardNumberInput})
+Expiry Date: ${expiryDateInput.replace(/[^0-9]/g, '').length}/4 (${expiryDateInput})
+CVV: ${cvvInput.length}/3 (${cvvInput})
+Cardholder Name: ${cardholderNameInput.trim().length} chars ("${cardholderNameInput}")
+
+Form Valid: ${isFormValid ? 'YES' : 'NO'}
+        `;
+        
+        Alert.alert(
+          'Validation Failed', 
+          `Por favor complete todos los datos de la tarjeta\n\n${validationDetails}`
+        );
+        return;
+      }
     }
 
     console.log('Proceeding to processPayment');
-    await processPayment();
-  };
-
-  const processPayment = async () => {
-    const seatNumber = `${selectedRow}${selectedSeat}`;
-    setIsProcessing(true);
-
-    try {
-      const paymentRequest = {
-        items: cartItems,
-        total: total, // Use the discounted total passed from ProductSelectionScreen
-        currency: currency as Currency,
-        saleType: saleType as SaleType,
-        seatNumber: seatNumber.trim(),
-      };
-
-      const response = await ApiService.processPayment(paymentRequest);
-
-      if (response.success) {
-        // Call the payment response endpoint
-        try {
-          const paymentResponse = await ApiService.getPaymentResponse(response.transactionId!);
-          
-          if (paymentResponse.success) {
-            // Show confirmation modal with the response data
-            setConfirmationData({
-              message: paymentResponse.message,
-              transactionId: paymentResponse.transactionId || response.transactionId!,
-              isCashPayment: selectedPaymentMethod === 'cash'
-            });
-            setShowConfirmationModal(true);
-          } else {
-            Alert.alert('Error', paymentResponse.message || 'Error al obtener la confirmación del pago');
-          }
-        } catch (error) {
-          console.error('Error fetching payment response:', error);
-          // Fallback to showing basic success message
-          setConfirmationData({
-            message: 'Payment processed successfully',
-            transactionId: response.transactionId!,
-            isCashPayment: selectedPaymentMethod === 'cash'
-          });
-          setShowConfirmationModal(true);
-        }
-      } else {
-        Alert.alert('Error', response.message || 'Error al procesar el pago');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Error al procesar el pago. Intente nuevamente.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleCashPayment = () => {
-    console.log('handleCashPayment called with cashAmount:', cashAmount);
-    const cashAmountNum = parseFloat(cashAmount);
     
-    if (isNaN(cashAmountNum) || cashAmountNum <= 0) {
-      Alert.alert('Error', 'Por favor ingrese un monto válido');
-      return;
-    }
+    // Update ViewModel with local state values before processing
+    viewModel.setCardNumber(cardNumberInput);
+    viewModel.setExpiryDate(expiryDateInput.replace(/[^0-9]/g, ''));
+    viewModel.setCVV(cvvInput);
+    viewModel.setCardholderName(cardholderNameInput);
     
-    if (cashAmountNum < total) {
-      Alert.alert('Error', `El monto debe ser al menos ${formatCurrency(total, currency)}`);
-      return;
-    }
-    
-    // Calculate change
-    const change = cashAmountNum - total;
-    setCashChange(change);
-    
-    // Close cash amount modal and process payment
-    setShowCashAmountModal(false);
-    setCashAmount(''); // Reset cash amount
-    processPayment();
+    await viewModel.processPayment(method);
   };
 
   const formatCurrency = (amount: number, curr: string) => {
@@ -282,13 +137,13 @@ export const PaymentScreen: React.FC = () => {
       product.currency,
       targetCurrency as Currency
     );
-    const discountedPrice = DiscountCalculator.calculateDiscountedPrice(convertedPrice, saleType as SaleType);
+    const discountedPrice = DiscountCalculator.calculateDiscountedPrice(convertedPrice, viewModel.saleType as SaleType);
     const totalDiscountedPrice = discountedPrice * quantity;
     
     return {
       originalPrice: CurrencyConverter.formatCurrency(convertedPrice * quantity, targetCurrency as Currency),
       discountedPrice: CurrencyConverter.formatCurrency(totalDiscountedPrice, targetCurrency as Currency),
-      hasDiscount: DiscountCalculator.hasDiscount(saleType as SaleType)
+      hasDiscount: DiscountCalculator.hasDiscount(viewModel.saleType as SaleType)
     };
   };
 
@@ -305,8 +160,8 @@ export const PaymentScreen: React.FC = () => {
           onPress={() => {
             // Pass the updated cart and sale type back to ProductSelectionScreen
             navigation.navigate('ProductSelection', { 
-              updatedCart: cartItems,
-              selectedSaleType: saleType as SaleType
+              updatedCart: viewModel.cartItems,
+              selectedSaleType: viewModel.saleType as SaleType
             });
           }}
         >
@@ -316,7 +171,7 @@ export const PaymentScreen: React.FC = () => {
 
       {/* Product List */}
       <View style={styles.productList}>
-        {cartItems.map((item: CartItem, index: number) => (
+        {viewModel.cartItems.map((item: CartItem, index: number) => (
           <Swipeable
             key={index}
             ref={(ref) => {
@@ -345,7 +200,7 @@ export const PaymentScreen: React.FC = () => {
               <View style={styles.productInfo}>
                 <Text style={styles.productName}>{item.product.name}</Text>
                 {(() => {
-                  const priceInfo = formatProductPrice(item.product, item.quantity, currency);
+                  const priceInfo = formatProductPrice(item.product, item.quantity, viewModel.currency);
                   return priceInfo.hasDiscount ? (
                     <View style={styles.priceContainer}>
                       <Text style={styles.originalPriceText}>{priceInfo.originalPrice}</Text>
@@ -381,11 +236,11 @@ export const PaymentScreen: React.FC = () => {
           <View style={styles.totalSection}>
             <Text style={styles.totalLabel}>TOTAL</Text>
             <Text style={styles.totalAmount}>
-              {formatCurrency(total, currency)}
+              {formatCurrency(viewModel.total, viewModel.currency)}
             </Text>
-            {DiscountCalculator.hasDiscount(saleType as SaleType) && (
+            {DiscountCalculator.hasDiscount(viewModel.saleType as SaleType) && (
               <Text style={styles.discountInfo}>
-                {DiscountCalculator.getDiscountText(saleType as SaleType)} applied
+                {DiscountCalculator.getDiscountText(viewModel.saleType as SaleType)} applied
               </Text>
             )}
           </View>
@@ -397,26 +252,26 @@ export const PaymentScreen: React.FC = () => {
             style={[
               styles.paymentOption,
               selectedPaymentMethod === 'cash' && styles.selectedPaymentOption,
-              cartItems.length === 0 && styles.paymentOptionDisabled
+              viewModel.cartItems.length === 0 && styles.paymentOptionDisabled
             ]}
             onPress={() => {
               console.log('Cash button pressed');
-              if (cartItems.length === 0) return;
+              if (viewModel.cartItems.length === 0) return;
               console.log('Setting payment method to cash');
               setSelectedPaymentMethod('cash');
               // Trigger payment immediately for cash with explicit cash parameter
               console.log('Calling handlePayment from cash button');
               handlePayment('cash');
             }}
-            disabled={cartItems.length === 0}
+            disabled={viewModel.cartItems.length === 0}
           >
             <Text style={[
               styles.paymentIcon,
-              cartItems.length === 0 && styles.paymentIconDisabled
+              viewModel.cartItems.length === 0 && styles.paymentIconDisabled
             ]}>💰</Text>
             <Text style={[
               styles.paymentLabel,
-              cartItems.length === 0 && styles.paymentLabelDisabled
+              viewModel.cartItems.length === 0 && styles.paymentLabelDisabled
             ]}>Efectivo</Text>
           </TouchableOpacity>
           
@@ -424,22 +279,22 @@ export const PaymentScreen: React.FC = () => {
             style={[
               styles.paymentOption,
               selectedPaymentMethod === 'card' && styles.selectedPaymentOption,
-              cartItems.length === 0 && styles.paymentOptionDisabled
+              viewModel.cartItems.length === 0 && styles.paymentOptionDisabled
             ]}
             onPress={() => {
-              if (cartItems.length === 0) return;
+              if (viewModel.cartItems.length === 0) return;
               setSelectedPaymentMethod('card');
-              setShowCardForm(true);
+              viewModel.showCardPaymentModal();
             }}
-            disabled={cartItems.length === 0}
+            disabled={viewModel.cartItems.length === 0}
           >
             <Text style={[
               styles.paymentIcon,
-              cartItems.length === 0 && styles.paymentIconDisabled
+              viewModel.cartItems.length === 0 && styles.paymentIconDisabled
             ]}>💳</Text>
             <Text style={[
               styles.paymentLabel,
-              cartItems.length === 0 && styles.paymentLabelDisabled
+              viewModel.cartItems.length === 0 && styles.paymentLabelDisabled
             ]}>Tarjeta</Text>
           </TouchableOpacity>
         </View>
@@ -544,10 +399,11 @@ export const PaymentScreen: React.FC = () => {
 
       {/* Card Form Modal */}
       <Modal
-        visible={showCardForm}
+        visible={viewModel.showCardForm}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowCardForm(false)}
+        onRequestClose={() => viewModel.hideCardPaymentModal()}
+        key={`card-modal-${viewModel.showCardForm}`}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
@@ -559,7 +415,7 @@ export const PaymentScreen: React.FC = () => {
               <Text style={styles.modalTitle}>Card Details</Text>
               <TouchableOpacity
                 style={styles.closeButton}
-                onPress={() => setShowCardForm(false)}
+                onPress={() => viewModel.hideCardPaymentModal()}
               >
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
@@ -569,8 +425,11 @@ export const PaymentScreen: React.FC = () => {
               <TextInput
                 style={styles.cardInput}
                 placeholder="Card Number"
-                value={cardNumber}
-                onChangeText={(text) => setCardNumber(validateCardNumber(text))}
+                value={cardNumberInput}
+                onChangeText={(text) => {
+                  setCardNumberInput(text);
+                  viewModel.setCardNumber(text);
+                }}
                 keyboardType="numeric"
                 maxLength={16}
                 autoFocus
@@ -579,42 +438,53 @@ export const PaymentScreen: React.FC = () => {
                 <TextInput
                   style={[styles.cardInput, styles.halfInput]}
                   placeholder="MM/YY"
-                  value={expiryDate}
-                  onChangeText={(text) => setExpiryDate(validateExpiryDate(text))}
+                  value={expiryDateInput}
+                  onChangeText={(text) => {
+                    setExpiryDateInput(text);
+                    // Remove any non-numeric characters for storage
+                    const numbersOnly = text.replace(/[^0-9]/g, '');
+                    viewModel.setExpiryDate(numbersOnly);
+                  }}
                   maxLength={5}
                 />
                 <TextInput
                   style={[styles.cardInput, styles.halfInput]}
                   placeholder="CVV"
-                  value={cvv}
-                  onChangeText={(text) => setCvv(validateCVV(text))}
+                  value={cvvInput}
+                  onChangeText={(text) => {
+                    setCvvInput(text);
+                    viewModel.setCVV(text);
+                  }}
                   keyboardType="numeric"
-                  maxLength={4}
+                  maxLength={3}
                 />
               </View>
               <TextInput
                 style={styles.cardInput}
                 placeholder="Cardholder Name"
-                value={cardholderName}
-                onChangeText={(text) => setCardholderName(validateCardholderName(text))}
+                value={cardholderNameInput}
+                onChangeText={(text) => {
+                  setCardholderNameInput(text);
+                  viewModel.setCardholderName(text);
+                }}
                 autoCapitalize="words"
               />
               <TouchableOpacity
                 style={[
                   styles.saveCardButton,
-                  !isCardFormComplete && styles.saveCardButtonDisabled
+                  !viewModel.isFormValid && styles.saveCardButtonDisabled
                 ]}
                 onPress={() => {
-                  if (isCardFormComplete) {
-                    setShowCardForm(false);
+                  if (viewModel.isFormValid) {
+                    viewModel.hideCardPaymentModal();
                     handlePayment();
                   }
                 }}
-                disabled={!isCardFormComplete}
+                disabled={!viewModel.isFormValid}
               >
                 <Text style={[
                   styles.saveCardButtonText,
-                  !isCardFormComplete && styles.saveCardButtonTextDisabled
+                  !viewModel.isFormValid && styles.saveCardButtonTextDisabled
                 ]}>Pay</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -624,10 +494,10 @@ export const PaymentScreen: React.FC = () => {
 
       {/* Cash Amount Modal */}
       <Modal
-        visible={showCashAmountModal}
+        visible={viewModel.showCashAmountModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowCashAmountModal(false)}
+        onRequestClose={() => viewModel.hideCashPaymentModal()}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
@@ -640,8 +510,7 @@ export const PaymentScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => {
-                  setShowCashAmountModal(false);
-                  setCashAmount(''); // Reset cash amount when modal is closed
+                  viewModel.hideCashPaymentModal();
                 }}
               >
                 <Text style={styles.closeButtonText}>✕</Text>
@@ -651,46 +520,50 @@ export const PaymentScreen: React.FC = () => {
             <ScrollView style={styles.cashForm} showsVerticalScrollIndicator={false}>
               <View style={styles.cashAmountSection}>
                 <Text style={styles.cashAmountLabel}>Total to Pay:</Text>
-                <Text style={styles.cashAmountTotal}>{formatCurrency(total, currency)}</Text>
+                <Text style={styles.cashAmountTotal}>{formatCurrency(viewModel.total, viewModel.currency)}</Text>
               </View>
               
               <View style={styles.cashInputSection}>
                 <Text style={styles.cashInputLabel}>Amount Received:</Text>
-                <TextInput
-                  style={styles.cashInput}
-                  placeholder="0.00"
-                  value={cashAmount}
-                  onChangeText={(text) => setCashAmount(validateCashAmount(text))}
-                  keyboardType="numeric"
-                  autoFocus
-                />
+                                       <TextInput
+                         style={styles.cashInput}
+                         placeholder="0.00"
+                         value={cashAmountInput}
+                         onChangeText={(text) => {
+                           console.log('Cash amount input:', text);
+                           setCashAmountInput(text);
+                           viewModel.setCashAmount(text);
+                         }}
+                         keyboardType="numeric"
+                         autoFocus
+                       />
               </View>
               
-              {cashAmount && parseFloat(cashAmount) > 0 && (
-                <View style={styles.changeSection}>
-                  <Text style={styles.changeLabel}>Change:</Text>
-                  <Text style={[
-                    styles.changeAmount,
-                    parseFloat(cashAmount) < total ? styles.changeAmountNegative : styles.changeAmountPositive
-                  ]}>
-                    {formatCurrency(parseFloat(cashAmount) - total, currency)}
-                  </Text>
-                </View>
-              )}
+                                   {viewModel.cashAmount && parseFloat(viewModel.cashAmount) > 0 && (
+                       <View style={styles.changeSection}>
+                         <Text style={styles.changeLabel}>Change:</Text>
+                         <Text style={[
+                           styles.changeAmount,
+                           parseFloat(viewModel.cashAmount) < viewModel.total ? styles.changeAmountNegative : styles.changeAmountPositive
+                         ]}>
+                           {formatCurrency(parseFloat(viewModel.cashAmount) - viewModel.total, viewModel.currency)}
+                         </Text>
+                       </View>
+                     )}
               
-              <TouchableOpacity
-                style={[
-                  styles.processCashButton,
-                  (!cashAmount || parseFloat(cashAmount) < total) && styles.processCashButtonDisabled
-                ]}
-                onPress={handleCashPayment}
-                disabled={!cashAmount || parseFloat(cashAmount) < total}
-              >
-                <Text style={[
-                  styles.processCashButtonText,
-                  (!cashAmount || parseFloat(cashAmount) < total) && styles.processCashButtonTextDisabled
-                ]}>Process Payment</Text>
-              </TouchableOpacity>
+                                   <TouchableOpacity
+                       style={[
+                         styles.processCashButton,
+                         (!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total) && styles.processCashButtonDisabled
+                       ]}
+                       onPress={() => viewModel.processPayment('cash')}
+                       disabled={!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total}
+                     >
+                       <Text style={[
+                         styles.processCashButtonText,
+                         (!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total) && styles.processCashButtonTextDisabled
+                       ]}>Process Payment</Text>
+                     </TouchableOpacity>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
@@ -698,10 +571,10 @@ export const PaymentScreen: React.FC = () => {
 
       {/* Confirmation Modal */}
       <Modal
-        visible={showConfirmationModal}
+        visible={viewModel.showConfirmationModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowConfirmationModal(false)}
+        onRequestClose={() => viewModel.closeConfirmationModal()}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.confirmationModalContent}>
@@ -711,21 +584,21 @@ export const PaymentScreen: React.FC = () => {
             
             <View style={styles.confirmationBody}>
               <Text style={styles.confirmationMessage}>
-                {confirmationData?.message || 'Payment processed successfully'}
+                {viewModel.confirmationData?.message || 'Payment processed successfully'}
               </Text>
               
-              {confirmationData?.isCashPayment && cashChange > 0 && (
+              {viewModel.confirmationData?.isCashPayment && viewModel.cashChange > 0 && (
                 <View style={styles.changeContainer}>
                   <Text style={styles.changeLabel}>Change:</Text>
-                  <Text style={styles.changeAmount}>{formatCurrency(cashChange, currency)}</Text>
+                  <Text style={styles.changeAmount}>{formatCurrency(viewModel.cashChange, viewModel.currency)}</Text>
                 </View>
               )}
               
-              {!confirmationData?.isCashPayment && (
+              {!viewModel.confirmationData?.isCashPayment && (
                 <View style={styles.transactionIdContainer}>
                   <Text style={styles.transactionIdLabel}>Transaction ID:</Text>
                   <Text style={styles.transactionIdText}>
-                    {confirmationData?.transactionId || 'N/A'}
+                    {viewModel.confirmationData?.transactionId || 'N/A'}
                   </Text>
                 </View>
               )}
@@ -734,11 +607,11 @@ export const PaymentScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.confirmationButton}
               onPress={() => {
-                setShowConfirmationModal(false);
+                viewModel.closeConfirmationModal();
                 // Reset cart and return to ProductSelectionScreen
                 navigation.navigate('ProductSelection', { 
                   updatedCart: [], // Empty cart
-                  selectedSaleType: saleType as SaleType
+                  selectedSaleType: viewModel.saleType as SaleType
                 });
               }}
             >
@@ -749,7 +622,7 @@ export const PaymentScreen: React.FC = () => {
       </Modal>
     </SafeAreaView>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -1179,4 +1052,4 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignItems: 'center',
   },
-}); 
+});

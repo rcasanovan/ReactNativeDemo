@@ -3,7 +3,7 @@ export interface Product {
   name: string;
   price: number;
   image?: string;
-  stock: number;
+  inventory: number;
   currency: Currency;
   type?: string; // Add type field for filtering
 }
