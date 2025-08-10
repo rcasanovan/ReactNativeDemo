@@ -85,7 +85,7 @@ The app uses **MobX** for reactive state management:
 ## ✨ Features
 
 ### 🛍️ Product Management
-- **Product Selection**: Browse and select drinks from a catalog
+- **Product Selection**: Browse and select products from a catalog
 - **Shopping Cart**: Add/remove products and manage quantities
 - **Stock Management**: Track product inventory
 - **Sale Types**: Retail, Crew, Happy Hour, Business Invitation, Tourist Invitation
