@@ -38,7 +38,7 @@ describe('ProductCard', () => {
     );
 
     expect(getByText('Cocacola')).toBeTruthy();
-    expect(getByText('0 unidades')).toBeTruthy();
+    expect(getByText('0 units')).toBeTruthy();
     expect(getByText('5.53 €')).toBeTruthy();
   });
 
@@ -54,7 +54,7 @@ describe('ProductCard', () => {
       />
     );
 
-    expect(getByText('2 unidades')).toBeTruthy();
+    expect(getByText('2 units')).toBeTruthy();
   });
 
   it('calls onAdd when add button is pressed', () => {

@@ -50,6 +50,8 @@ This document tracks the progress of refactoring the React Native app from a tra
     - Dynamic total calculation when items are removed
     - Fixed CartItem MobX reactivity for quantity updates
     - Cleaned up debug code and test button from payment modal
+    - Translated all Spanish UI text to English (including sale type options and quantity labels)
+    - Fixed payment button formatting (removed duplicate currency symbol)
 
 ### ✅ Component Integration
 - ProductCard component updated to work with new Product model

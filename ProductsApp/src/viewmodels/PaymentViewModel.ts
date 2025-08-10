@@ -5,7 +5,7 @@ import { CurrencyConverter } from '../utils/currencyConverter';
 import { DiscountCalculator } from '../utils/discountCalculator';
 
 export type Currency = 'USD' | 'EUR' | 'GBP';
-export type SaleType = 'Retail' | 'Crew' | 'Happy hour' | 'Invitación business' | 'Invitación turista';
+export type SaleType = 'Retail' | 'Crew' | 'Happy hour' | 'Business Invitation' | 'Tourist Invitation';
 export type PaymentMethod = 'cash' | 'card';
 
 export interface PaymentData {

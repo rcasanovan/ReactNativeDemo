@@ -137,7 +137,7 @@ export const ProductSelectionView: React.FC = observer(() => {
             {/* Left Segment - Payment */}
             <View style={styles.paymentSegment}>
               <Text style={styles.paymentText}>
-                PAGAR $ <Text style={styles.paymentAmount}>
+                PAY <Text style={styles.paymentAmount}>
                   {viewModel.total.toFixed(2)}
                 </Text> {viewModel.selectedCurrency}
               </Text>
@@ -239,7 +239,7 @@ export const ProductSelectionView: React.FC = observer(() => {
                 </SafeAreaView>
                 
                 <FlatList
-                  data={['Retail', 'Crew', 'Happy hour', 'Invitación business', 'Invitación turista']}
+                  data={['Retail', 'Crew', 'Happy hour', 'Business Invitation', 'Tourist Invitation']}
                   keyExtractor={(item) => item}
                   renderItem={({ item }) => (
                     <TouchableOpacity

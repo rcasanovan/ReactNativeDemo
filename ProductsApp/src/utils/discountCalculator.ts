@@ -5,8 +5,8 @@ export const DISCOUNT_CONFIG: Record<SaleType, number> = {
   'Retail': 0, // 0% discount - full price
   'Crew': 25, // 25% discount for crew members
   'Happy hour': 30, // 30% discount during happy hour
-  'Invitación business': 50, // 50% discount for business invitations
-  'Invitación turista': 40, // 40% discount for tourist invitations
+  'Business Invitation': 50, // 50% discount for business invitations
+  'Tourist Invitation': 40, // 40% discount for tourist invitations
 };
 
 export class DiscountCalculator {

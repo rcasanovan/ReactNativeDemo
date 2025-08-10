@@ -75,7 +75,7 @@ export const PaymentView: React.FC = observer(() => {
     const seatNumber = `${selectedRow}${selectedSeat}`;
     
     if (viewModel.cartItems.length === 0) {
-      Alert.alert('Error', 'No hay productos en el carrito');
+      Alert.alert('Error', 'No products in cart');
       return;
     }
 
@@ -107,7 +107,7 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
         
         Alert.alert(
           'Validation Failed', 
-          `Por favor complete todos los datos de la tarjeta\n\n${validationDetails}`
+          `Please complete all card details\n\n${validationDetails}`
         );
         return;
       }
@@ -152,8 +152,8 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>Ticket</Text>
-          <Text style={styles.subtitle}>Productos seleccionados</Text>
+          <Text style={styles.title}>Receipt</Text>
+          <Text style={styles.subtitle}>Selected Products</Text>
         </View>
         <TouchableOpacity
           style={styles.closeButton}
@@ -224,7 +224,7 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
         {/* Top Row - Seat and Total */}
         <View style={styles.topRow}>
           <View style={styles.seatSection}>
-            <Text style={styles.seatLabel}>ASIENTO</Text>
+            <Text style={styles.seatLabel}>SEAT</Text>
             <TouchableOpacity
               style={styles.seatButton}
               onPress={() => setShowRowDropdown(true)}
@@ -272,7 +272,7 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
             <Text style={[
               styles.paymentLabel,
               viewModel.cartItems.length === 0 && styles.paymentLabelDisabled
-            ]}>Efectivo</Text>
+            ]}>Cash</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -295,7 +295,7 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
             <Text style={[
               styles.paymentLabel,
               viewModel.cartItems.length === 0 && styles.paymentLabelDisabled
-            ]}>Tarjeta</Text>
+            ]}>Card</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -5,12 +5,12 @@ import { ProductSelectionView } from '../views/ProductSelectionView';
 import { PaymentView } from '../views/PaymentView';
 
 export type RootStackParamList = {
-  ProductSelection: { updatedCart?: any[]; selectedSaleType?: 'Retail' | 'Crew' | 'Happy hour' | 'Invitación business' | 'Invitación turista' } | undefined;
+  ProductSelection: { updatedCart?: any[]; selectedSaleType?: 'Retail' | 'Crew' | 'Happy hour' | 'Business Invitation' | 'Tourist Invitation' } | undefined;
   Payment: {
     cart: any[];
     total: number;
     currency: string;
-    saleType: 'Retail' | 'Crew' | 'Happy hour' | 'Invitación business' | 'Invitación turista';
+    saleType: 'Retail' | 'Crew' | 'Happy hour' | 'Business Invitation' | 'Tourist Invitation';
   };
 };
 

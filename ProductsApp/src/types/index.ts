@@ -15,7 +15,7 @@ export interface CartItem {
 
 export type Currency = 'EUR' | 'USD' | 'GBP';
 
-export type SaleType = 'Retail' | 'Crew' | 'Happy hour' | 'Invitación business' | 'Invitación turista';
+export type SaleType = 'Retail' | 'Crew' | 'Happy hour' | 'Business Invitation' | 'Tourist Invitation';
 
 export interface PaymentRequest {
   items: CartItem[];

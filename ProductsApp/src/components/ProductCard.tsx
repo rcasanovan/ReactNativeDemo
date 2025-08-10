@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.name}
           </Text>
           <Text style={styles.quantity}>
-            {quantity} unidades
+            {quantity} units
           </Text>
         </View>
         
