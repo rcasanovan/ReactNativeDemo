@@ -1,6 +1,6 @@
-# Refrescos App
+# Products App
 
-A React Native mobile application for managing drink sales and payments, designed for flight services. Built with **MVVM (Model-View-ViewModel)** architecture using **MobX** for state management.
+A React Native mobile application for managing product sales and payments, designed for flight services. Built with **MVVM (Model-View-ViewModel)** architecture using **MobX** for state management.
 
 ## 🏗️ Architecture
 
