@@ -44,6 +44,7 @@ export const PaymentView: React.FC = observer(() => {
   const [selectedSeat, setSelectedSeat] = useState('1');
   const [showRowDropdown, setShowRowDropdown] = useState(false);
   const [showSeatDropdown, setShowSeatDropdown] = useState(false);
+  const [cartWasEmptied, setCartWasEmptied] = useState(false);
   const swipeableRefs = useRef<{ [key: number]: any }>({});
 
   // Local state for input fields
@@ -66,6 +67,11 @@ export const PaymentView: React.FC = observer(() => {
     newCart.splice(index, 1);
     // Update the cart in the viewModel
     viewModel.updateCart(newCart);
+    
+    // If cart becomes empty, set flag to reset currency when returning to main screen
+    if (newCart.length === 0) {
+      setCartWasEmptied(true);
+    }
   };
 
   const handlePayment = async (paymentMethod?: 'cash' | 'card') => {
@@ -158,10 +164,11 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => {
-            // Pass the updated cart and sale type back to ProductSelectionScreen
+            // Pass the updated cart, sale type, and currency reset flag back to ProductSelectionScreen
             navigation.navigate('ProductSelection', { 
               updatedCart: viewModel.cartItems,
-              selectedSaleType: viewModel.saleType as SaleType
+              selectedSaleType: viewModel.saleType as SaleType,
+              resetCurrency: cartWasEmptied
             });
           }}
         >

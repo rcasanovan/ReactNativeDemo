@@ -5,7 +5,7 @@ import { ProductSelectionView } from '../views/ProductSelectionView';
 import { PaymentView } from '../views/PaymentView';
 
 export type RootStackParamList = {
-  ProductSelection: { updatedCart?: any[]; selectedSaleType?: 'Retail' | 'Crew' | 'Happy hour' | 'Business Invitation' | 'Tourist Invitation' } | undefined;
+  ProductSelection: { updatedCart?: any[]; selectedSaleType?: 'Retail' | 'Crew' | 'Happy hour' | 'Business Invitation' | 'Tourist Invitation'; resetCurrency?: boolean } | undefined;
   Payment: {
     cart: any[];
     total: number;

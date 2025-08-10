@@ -52,6 +52,9 @@ This document tracks the progress of refactoring the React Native app from a tra
     - Cleaned up debug code and test button from payment modal
     - Translated all Spanish UI text to English (including sale type options and quantity labels)
     - Fixed payment button formatting (removed duplicate currency symbol)
+    - Added automatic currency reset to USD when cart becomes empty (both in main screen and payment screen)
+    - Fixed total amount updates in payment screen when items are removed
+    - Fixed currency display to show USD when cart is empty in payment screen
 
 ### ✅ Component Integration
 - ProductCard component updated to work with new Product model

@@ -98,6 +98,11 @@ export class ProductSelectionViewModel {
       } else {
         this.cart.removeItem(product.id);
       }
+      
+      // Reset currency to USD when cart becomes empty
+      if (this.cart.isEmpty()) {
+        this.selectedCurrency = 'USD';
+      }
     }
   }
 

@@ -42,7 +42,10 @@ export const ProductSelectionView: React.FC = observer(() => {
     if (route.params?.selectedSaleType) {
       viewModel.setSelectedSaleType(route.params.selectedSaleType);
     }
-  }, [route.params?.updatedCart, route.params?.selectedSaleType]);
+    if (route.params?.resetCurrency) {
+      viewModel.setSelectedCurrency('USD');
+    }
+  }, [route.params?.updatedCart, route.params?.selectedSaleType, route.params?.resetCurrency]);
 
   const handleProceedToPayment = () => {
     if (!viewModel.canProceedToPayment) {

@@ -63,6 +63,10 @@ export class PaymentViewModel {
   }
 
   get currency(): string {
+    // If cart is empty, return USD as default currency
+    if (!this.cartItems || this.cartItems.length === 0) {
+      return 'USD';
+    }
     return this.paymentData?.currency || 'USD';
   }
 
@@ -124,9 +128,11 @@ export class PaymentViewModel {
   }
 
   updateCart(newCart: CartItem[]): void {
-    if (this.paymentData) {
-      this.paymentData.cart = newCart;
-    }
+    runInAction(() => {
+      if (this.paymentData) {
+        this.paymentData.cart = newCart;
+      }
+    });
   }
 
   resetForm(): void {
