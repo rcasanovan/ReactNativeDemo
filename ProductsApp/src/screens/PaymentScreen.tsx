@@ -14,6 +14,7 @@ import {
   Animated,
   Image,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -548,7 +549,11 @@ export const PaymentScreen: React.FC = () => {
         animationType="slide"
         onRequestClose={() => setShowCardForm(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
           <View style={styles.modalContent}>
             <SafeAreaView style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Card Details</Text>
@@ -560,7 +565,7 @@ export const PaymentScreen: React.FC = () => {
               </TouchableOpacity>
             </SafeAreaView>
             
-            <View style={styles.cardForm}>
+            <ScrollView style={styles.cardForm} showsVerticalScrollIndicator={false}>
               <TextInput
                 style={styles.cardInput}
                 placeholder="Card Number"
@@ -568,6 +573,7 @@ export const PaymentScreen: React.FC = () => {
                 onChangeText={(text) => setCardNumber(validateCardNumber(text))}
                 keyboardType="numeric"
                 maxLength={16}
+                autoFocus
               />
               <View style={styles.cardRow}>
                 <TextInput
@@ -611,9 +617,9 @@ export const PaymentScreen: React.FC = () => {
                   !isCardFormComplete && styles.saveCardButtonTextDisabled
                 ]}>Pay</Text>
               </TouchableOpacity>
-            </View>
+            </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Cash Amount Modal */}
@@ -623,7 +629,11 @@ export const PaymentScreen: React.FC = () => {
         animationType="slide"
         onRequestClose={() => setShowCashAmountModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
           <View style={styles.modalContent}>
             <SafeAreaView style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Cash Payment</Text>
@@ -638,7 +648,7 @@ export const PaymentScreen: React.FC = () => {
               </TouchableOpacity>
             </SafeAreaView>
             
-            <View style={styles.cashForm}>
+            <ScrollView style={styles.cashForm} showsVerticalScrollIndicator={false}>
               <View style={styles.cashAmountSection}>
                 <Text style={styles.cashAmountLabel}>Total to Pay:</Text>
                 <Text style={styles.cashAmountTotal}>{formatCurrency(total, currency)}</Text>
@@ -681,9 +691,9 @@ export const PaymentScreen: React.FC = () => {
                   (!cashAmount || parseFloat(cashAmount) < total) && styles.processCashButtonTextDisabled
                 ]}>Process Payment</Text>
               </TouchableOpacity>
-            </View>
+            </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Confirmation Modal */}
@@ -964,6 +974,7 @@ const styles = StyleSheet.create({
   },
   cardForm: {
     padding: Platform.OS === 'ios' ? 32 : 16,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 16,
   },
   cardInput: {
     backgroundColor: '#F8F8F8',
@@ -1085,6 +1096,7 @@ const styles = StyleSheet.create({
   },
   cashForm: {
     padding: Platform.OS === 'ios' ? 32 : 16,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 16,
   },
   cashAmountSection: {
     alignItems: 'center',
