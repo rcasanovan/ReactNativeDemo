@@ -1,6 +1,6 @@
-# Products App
+# Refrescos App
 
-A React Native mobile application for managing product sales and payments, designed for flight services. Built with **MVVM (Model-View-ViewModel)** architecture using **MobX** for state management.
+A React Native mobile application for managing drink sales and payments, designed for flight services. Built with **MVVM (Model-View-ViewModel)** architecture using **MobX** for state management.
 
 ## 🏗️ Architecture
 
@@ -85,7 +85,7 @@ The app uses **MobX** for reactive state management:
 ## ✨ Features
 
 ### 🛍️ Product Management
-- **Product Selection**: Browse and select products from a catalog
+- **Product Selection**: Browse and select drinks from a catalog
 - **Shopping Cart**: Add/remove products and manage quantities
 - **Stock Management**: Track product inventory
 - **Sale Types**: Retail, Crew, Happy Hour, Business Invitation, Tourist Invitation
@@ -282,13 +282,7 @@ The app includes comprehensive unit tests:
 - **iOS**: 13.0+
 - **Android**: API level 21+ (Android 5.0+)
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+> **⚠️ iOS 18 Compatibility Note**: During development, we encountered compatibility issues with iOS 18 beta versions. The app may experience unexpected behavior or crashes on iOS 18 beta releases. For the best experience, we recommend using iOS 17.x or stable iOS 18 releases when available.
 
 ## 📄 License
 
