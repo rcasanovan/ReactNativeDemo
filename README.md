@@ -33,20 +33,48 @@ The app uses **MobX** for reactive state management:
 ## 📱 Screenshots
 
 ### iOS Screenshots
-> **Note:** Screenshots will be added here after iOS deployment
 
-- **Product Selection Screen** - Browse drinks, manage cart, select currency
-- **Payment Screen** - Process payments with seat assignment
-- **Card Payment Modal** - Secure card payment with validation
-- **Cash Payment Modal** - Cash payment with change calculation
+#### Product Selection Screen
+Browse drinks, manage cart, select currency, and choose sale type.
 
-### Android Screenshots  
-> **Note:** Screenshots will be added here after Android deployment
+![iOS Product Selection](Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.31.png)
 
-- **Product Selection Screen** - Browse drinks, manage cart, select currency
-- **Payment Screen** - Process payments with seat assignment
-- **Card Payment Modal** - Secure card payment with validation
-- **Cash Payment Modal** - Cash payment with change calculation
+#### Payment Screen
+Process payments with seat assignment and cart review.
+
+![iOS Payment Screen](Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.36.png)
+
+#### Card Payment Modal
+Secure card payment with real-time validation and auto-formatting.
+
+![iOS Card Payment](Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.43.png)
+
+#### Cash Payment Modal
+Cash payment with change calculation and Spanish locale support.
+
+![iOS Cash Payment](Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.50.png)
+
+### Android Screenshots
+
+#### Product Selection Screen
+Browse drinks, manage cart, select currency, and choose sale type.
+
+![Android Product Selection](Images/Android/Screenshot_1754842400.png)
+
+#### Payment Screen
+Process payments with seat assignment and cart review.
+
+![Android Payment Screen](Images/Android/Screenshot_1754842394.png)
+
+#### Card Payment Modal
+Secure card payment with real-time validation and auto-formatting.
+
+![Android Card Payment](Images/Android/Screenshot_1754842388.png)
+
+#### Cash Payment Modal
+Cash payment with change calculation and Spanish locale support.
+
+![Android Cash Payment](Images/Android/Screenshot_1754842383.png)
 
 ## 🛠️ Technology Stack
 
