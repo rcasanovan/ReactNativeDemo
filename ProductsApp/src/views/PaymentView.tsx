@@ -499,7 +499,7 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Cash Amount Modal */}
+            {/* Cash Amount Modal */}
       <Modal
         visible={viewModel.showCashAmountModal}
         transparent
@@ -509,7 +509,7 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
         <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? -40 : -20}
         >
           <View style={styles.modalContent}>
             <SafeAreaView style={styles.modalHeader}>
@@ -532,45 +532,45 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
               
               <View style={styles.cashInputSection}>
                 <Text style={styles.cashInputLabel}>Amount Received:</Text>
-                                       <TextInput
-                         style={styles.cashInput}
-                         placeholder="0.00"
-                         value={cashAmountInput}
-                         onChangeText={(text) => {
-                           console.log('Cash amount input:', text);
-                           setCashAmountInput(text);
-                           viewModel.setCashAmount(text);
-                         }}
-                         keyboardType="numeric"
-                         autoFocus
-                       />
+                <TextInput
+                  style={styles.cashInput}
+                  placeholder="0.00"
+                  value={cashAmountInput}
+                  onChangeText={(text) => {
+                    console.log('Cash amount input:', text);
+                    setCashAmountInput(text);
+                    viewModel.setCashAmount(text);
+                  }}
+                  keyboardType="numeric"
+                  autoFocus
+                />
               </View>
               
-                                   {viewModel.cashAmount && parseFloat(viewModel.cashAmount) > 0 && (
-                       <View style={styles.changeSection}>
-                         <Text style={styles.changeLabel}>Change:</Text>
-                         <Text style={[
-                           styles.changeAmount,
-                           parseFloat(viewModel.cashAmount) < viewModel.total ? styles.changeAmountNegative : styles.changeAmountPositive
-                         ]}>
-                           {formatCurrency(parseFloat(viewModel.cashAmount) - viewModel.total, viewModel.currency)}
-                         </Text>
-                       </View>
-                     )}
+              {viewModel.cashAmount && parseFloat(viewModel.cashAmount) > 0 && (
+                <View style={styles.changeSection}>
+                  <Text style={styles.changeLabel}>Change:</Text>
+                  <Text style={[
+                    styles.changeAmount,
+                    parseFloat(viewModel.cashAmount) < viewModel.total ? styles.changeAmountNegative : styles.changeAmountPositive
+                  ]}>
+                    {formatCurrency(parseFloat(viewModel.cashAmount) - viewModel.total, viewModel.currency)}
+                  </Text>
+                </View>
+              )}
               
-                                   <TouchableOpacity
-                       style={[
-                         styles.processCashButton,
-                         (!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total) && styles.processCashButtonDisabled
-                       ]}
-                       onPress={() => viewModel.processPayment('cash')}
-                       disabled={!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total}
-                     >
-                       <Text style={[
-                         styles.processCashButtonText,
-                         (!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total) && styles.processCashButtonTextDisabled
-                       ]}>Process Payment</Text>
-                     </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.processCashButton,
+                  (!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total) && styles.processCashButtonDisabled
+                ]}
+                onPress={() => viewModel.processPayment('cash')}
+                disabled={!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total}
+              >
+                <Text style={[
+                  styles.processCashButtonText,
+                  (!viewModel.cashAmount || parseFloat(viewModel.cashAmount) < viewModel.total) && styles.processCashButtonTextDisabled
+                ]}>Process Payment</Text>
+              </TouchableOpacity>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
@@ -817,7 +817,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '70%',
+    maxHeight: '80%',
+    minHeight: '60%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -974,9 +975,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+
+
+
   cashForm: {
+    flex: 1,
     padding: Platform.OS === 'ios' ? 32 : 16,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 16,
+    paddingBottom: Platform.OS === 'ios' ? 300 : 280,
   },
   cashAmountSection: {
     alignItems: 'center',
@@ -1034,6 +1039,7 @@ const styles = StyleSheet.create({
   changeAmountNegative: {
     color: '#F44336',
   },
+
   processCashButton: {
     backgroundColor: '#007AFF',
     padding: 16,
