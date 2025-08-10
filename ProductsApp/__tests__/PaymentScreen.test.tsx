@@ -19,6 +19,11 @@ jest.mock('react-native', () => ({
   Modal: 'Modal',
   TextInput: 'TextInput',
   Image: 'Image',
+  KeyboardAvoidingView: 'KeyboardAvoidingView',
+  Platform: {
+    OS: 'ios',
+    select: jest.fn((obj) => obj.ios),
+  },
   StyleSheet: {
     create: (styles: any) => styles,
     flatten: (style: any) => style,

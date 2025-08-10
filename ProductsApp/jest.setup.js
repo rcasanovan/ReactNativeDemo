@@ -41,4 +41,10 @@ jest.mock('react-native/Libraries/Image/Image', () => ({
 // Mock Alert
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
   alert: jest.fn(),
+}));
+
+// Mock Platform specifically
+jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+  OS: 'ios',
+  select: jest.fn((obj) => obj.ios),
 })); 

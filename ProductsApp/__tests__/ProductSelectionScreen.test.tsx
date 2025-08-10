@@ -23,6 +23,10 @@ jest.mock('react-native', () => ({
   ActivityIndicator: 'ActivityIndicator',
   SafeAreaView: 'SafeAreaView',
   Modal: 'Modal',
+  Platform: {
+    OS: 'ios',
+    select: jest.fn((obj) => obj.ios),
+  },
   StyleSheet: {
     create: (styles: any) => styles,
     flatten: (style: any) => style,
