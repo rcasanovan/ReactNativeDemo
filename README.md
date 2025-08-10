@@ -33,8 +33,6 @@ The app uses **MobX** for reactive state management:
 ## 📱 Screenshots
 
 ### iOS Screenshots
-Browse drinks, manage cart, select currency, process payments with seat assignment, and handle both card and cash payments with validation.
-
 <p float="left">
   <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.08.png" width="250" />
   <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.13.png" width="250" />
@@ -49,8 +47,6 @@ Browse drinks, manage cart, select currency, process payments with seat assignme
 </p>
 
 ### Android Screenshots
-Browse drinks, manage cart, select currency, process payments with seat assignment, and handle both card and cash payments with validation.
-
 <p float="left">
   <img src="Images/Android/Screenshot_1754842378.png" width="250" />
   <img src="Images/Android/Screenshot_1754842383.png" width="250" />
@@ -300,4 +296,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-For support and questions, please open an issue in the repository or contact the development team.
+For support and questions, please open an issue in the repository or contact me directly.
