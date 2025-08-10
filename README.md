@@ -197,11 +197,25 @@ npx tsc --noEmit
 
 ## 📊 API Integration
 
-The app currently uses mock data but is designed to work with:
+The app is designed to work with RESTful APIs and currently uses a fake API server for demonstration purposes.
+
+### 🚀 Fake API Server
+
+This app integrates with a **fake REST API** built using [My JSON Server](https://my-json-server.typicode.com) service:
+
+- **API Repository**: [fakeProductsAPI](https://github.com/rcasanovan/fakeProductsAPI)
+- **API Endpoint**: `https://my-json-server.typicode.com/rcasanovan/fakeProductsAPI`
+- **Service**: [My JSON Server](https://my-json-server.typicode.com) by Typicode
+
+### 🔗 API Endpoints
+
+The app is designed to work with the following endpoints:
 - `GET /products` - Fetch available products
 - `POST /payments` - Process payment transactions
 
-### Mock Data Structure
+### 📋 Data Structure
+
+#### Product Interface
 ```typescript
 interface Product {
   id: string;
@@ -212,6 +226,43 @@ interface Product {
   inventory: number;
 }
 ```
+
+#### Payment Interface
+```typescript
+interface PaymentRequest {
+  amount: number;
+  currency: string;
+  paymentMethod: 'card' | 'cash';
+  items: CartItem[];
+  cardDetails?: {
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+    cardholderName: string;
+  };
+  cashAmount?: number;
+}
+```
+
+### 🔧 How It Works
+
+1. **JSON File**: The API uses a `db.json` file hosted on GitHub
+2. **Instant Server**: My JSON Server creates a fake REST API from the JSON file
+3. **No Registration**: No setup required, just create the JSON file and get instant API access
+4. **Caching**: Requests are cached for 1 minute for performance
+5. **Public Access**: The API is publicly accessible for demo purposes
+
+### 🎯 Benefits
+
+- **Rapid Prototyping**: No backend setup required
+- **Real API Testing**: Test actual HTTP requests and responses
+- **Consistent Data**: Same data structure across development and testing
+- **Easy Integration**: Standard REST API endpoints
+- **No Authentication**: Simple integration for demo purposes
+
+### 🔄 Future Integration
+
+The app is designed to easily switch to a real backend API by simply updating the API service configuration in `src/services/api.ts`.
 
 ## 💱 Currency Support
 
