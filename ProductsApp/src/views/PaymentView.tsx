@@ -530,21 +530,23 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
                 <Text style={styles.cashAmountTotal}>{formatCurrency(viewModel.total, viewModel.currency)}</Text>
               </View>
               
-              <View style={styles.cashInputSection}>
-                <Text style={styles.cashInputLabel}>Amount Received:</Text>
-                <TextInput
-                  style={styles.cashInput}
-                  placeholder="0.00"
-                  value={cashAmountInput}
-                  onChangeText={(text) => {
-                    console.log('Cash amount input:', text);
-                    setCashAmountInput(text);
-                    viewModel.setCashAmount(text);
-                  }}
-                  keyboardType="numeric"
-                  autoFocus
-                />
-              </View>
+                              <View style={styles.cashInputSection}>
+                  <Text style={styles.cashInputLabel}>Amount Received:</Text>
+                  <TextInput
+                    style={styles.cashInput}
+                    placeholder="0.00"
+                    value={cashAmountInput}
+                    onChangeText={(text) => {
+                      console.log('Cash amount input:', text);
+                      // Convert comma to period for decimal separator
+                      const normalizedText = text.replace(',', '.');
+                      setCashAmountInput(text);
+                      viewModel.setCashAmount(normalizedText);
+                    }}
+                    keyboardType="numeric"
+                    autoFocus
+                  />
+                </View>
               
               {viewModel.cashAmount && parseFloat(viewModel.cashAmount) > 0 && (
                 <View style={styles.changeSection}>
