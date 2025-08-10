@@ -415,7 +415,7 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
         <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? -40 : -20}
         >
           <View style={styles.modalContent}>
             <SafeAreaView style={styles.modalHeader}>
@@ -511,7 +511,7 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? -40 : -20}
         >
-          <View style={styles.modalContent}>
+          <View style={styles.cashModalContent}>
             <SafeAreaView style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Cash Payment</Text>
               <TouchableOpacity
@@ -816,6 +816,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+    minHeight: '50%',
+  },
+  cashModalContent: {
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

@@ -56,6 +56,7 @@ This document tracks the progress of refactoring the React Native app from a tra
     - Fixed total amount updates in payment screen when items are removed
     - Fixed currency display to show USD when cart is empty in payment screen
     - Fixed cash payment decimal separator handling for Spanish locale (comma to period conversion)
+    - Created separate modal styles and optimized keyboard spacing for both card and cash payment modals
 
 ### ✅ Component Integration
 - ProductCard component updated to work with new Product model
