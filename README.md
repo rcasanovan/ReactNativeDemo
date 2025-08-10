@@ -36,20 +36,28 @@ The app uses **MobX** for reactive state management:
 Browse drinks, manage cart, select currency, process payments with seat assignment, and handle both card and cash payments with validation.
 
 <p float="left">
+  <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.08.png" width="250" />
+  <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.13.png" width="250" />
+  <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.18.png" width="250" />
+  <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.22.png" width="250" />
   <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.31.png" width="250" />
   <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.36.png" width="250" />
   <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.43.png" width="250" />
   <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.50.png" width="250" />
+  <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.09.53.png" width="250" />
+  <img src="Images/iOS/Simulator%20Screenshot%20-%20iPhone%2016%20-%202025-08-10%20at%2018.10.37.png" width="250" />
 </p>
 
 ### Android Screenshots
 Browse drinks, manage cart, select currency, process payments with seat assignment, and handle both card and cash payments with validation.
 
 <p float="left">
-  <img src="Images/Android/Screenshot_1754842400.png" width="250" />
-  <img src="Images/Android/Screenshot_1754842394.png" width="250" />
-  <img src="Images/Android/Screenshot_1754842388.png" width="250" />
+  <img src="Images/Android/Screenshot_1754842378.png" width="250" />
   <img src="Images/Android/Screenshot_1754842383.png" width="250" />
+  <img src="Images/Android/Screenshot_1754842388.png" width="250" />
+  <img src="Images/Android/Screenshot_1754842394.png" width="250" />
+  <img src="Images/Android/Screenshot_1754842400.png" width="250" />
+  <img src="Images/Android/Screenshot_1754842429.png" width="250" />
 </p>
 
 ## 🛠️ Technology Stack
