@@ -137,6 +137,29 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
     return CurrencyConverter.formatCurrency(amount, curr as Currency);
   };
 
+  const isValidExpiryDate = (dateString: string): boolean => {
+    if (dateString.length !== 5 || !dateString.includes('/')) {
+      return false;
+    }
+    
+    const [month, year] = dateString.split('/');
+    const monthNum = parseInt(month, 10);
+    const yearNum = parseInt(year, 10);
+    const currentYear = new Date().getFullYear() % 100; // Get last 2 digits
+    
+    // Check if month is valid (01-12)
+    if (monthNum < 1 || monthNum > 12) {
+      return false;
+    }
+    
+    // Check if year is valid (current year or later)
+    if (yearNum < currentYear) {
+      return false;
+    }
+    
+    return true;
+  };
+
   const formatProductPrice = (product: any, quantity: number, targetCurrency: string) => {
     const convertedPrice = CurrencyConverter.convert(
       product.price,
@@ -441,31 +464,43 @@ Form Valid: ${isFormValid ? 'YES' : 'NO'}
                 maxLength={16}
                 autoFocus
               />
-              <View style={styles.cardRow}>
-                <TextInput
-                  style={[styles.cardInput, styles.halfInput]}
-                  placeholder="MM/YY"
-                  value={expiryDateInput}
-                  onChangeText={(text) => {
-                    setExpiryDateInput(text);
-                    // Remove any non-numeric characters for storage
-                    const numbersOnly = text.replace(/[^0-9]/g, '');
-                    viewModel.setExpiryDate(numbersOnly);
-                  }}
-                  maxLength={5}
-                />
-                <TextInput
-                  style={[styles.cardInput, styles.halfInput]}
-                  placeholder="CVV"
-                  value={cvvInput}
-                  onChangeText={(text) => {
-                    setCvvInput(text);
-                    viewModel.setCVV(text);
-                  }}
-                  keyboardType="numeric"
-                  maxLength={3}
-                />
-              </View>
+                                <View style={styles.cardRow}>
+                    <TextInput
+                      style={[styles.cardInput, styles.halfInput]}
+                      placeholder="MM/YY"
+                      value={expiryDateInput}
+                      onChangeText={(text) => {
+                        // Remove any non-numeric characters
+                        const numbersOnly = text.replace(/[^0-9]/g, '');
+                        
+                        // Format as MM/YY
+                        let formattedText = numbersOnly;
+                        if (numbersOnly.length >= 2) {
+                          formattedText = numbersOnly.slice(0, 2) + '/' + numbersOnly.slice(2, 4);
+                        }
+                        
+                        setExpiryDateInput(formattedText);
+                        // Store only numbers in ViewModel
+                        viewModel.setExpiryDate(numbersOnly);
+                      }}
+                      maxLength={5}
+                      keyboardType="numeric"
+                    />
+                    <TextInput
+                      style={[styles.cardInput, styles.halfInput]}
+                      placeholder="CVV"
+                      value={cvvInput}
+                      onChangeText={(text) => {
+                        setCvvInput(text);
+                        viewModel.setCVV(text);
+                      }}
+                      keyboardType="numeric"
+                      maxLength={3}
+                    />
+                  </View>
+                  {expiryDateInput.length === 5 && !isValidExpiryDate(expiryDateInput) && (
+                    <Text style={styles.errorText}>Invalid expiry date. Use MM/YY format (e.g., 12/25)</Text>
+                  )}
               <TextInput
                 style={styles.cardInput}
                 placeholder="Cardholder Name"
@@ -1073,5 +1108,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 20,
     alignItems: 'center',
+  },
+  errorText: {
+    color: '#F44336',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
 });

@@ -57,6 +57,8 @@ This document tracks the progress of refactoring the React Native app from a tra
     - Fixed currency display to show USD when cart is empty in payment screen
     - Fixed cash payment decimal separator handling for Spanish locale (comma to period conversion)
     - Created separate modal styles and optimized keyboard spacing for both card and cash payment modals
+    - Added auto-formatting for expiry date field (MM/YY format with numeric keyboard)
+    - Added expiry date validation with error message display for invalid dates
 
 ### ✅ Component Integration
 - ProductCard component updated to work with new Product model
