@@ -7,6 +7,7 @@ import {
   Modal,
   FlatList,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 
 interface DropdownProps {
@@ -164,14 +165,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: Platform.OS === 'ios' ? 32 : 16,
+    paddingVertical: Platform.OS === 'ios' ? 20 : 16,
+    paddingTop: Platform.OS === 'ios' ? 24 : 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: Platform.OS === 'ios' ? 20 : 18,
     fontWeight: '600',
     color: '#333',
+    marginLeft: Platform.OS === 'ios' ? 8 : 0,
   },
   closeButton: {
     width: 32,
@@ -186,7 +190,8 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   option: {
-    padding: 16,
+    paddingHorizontal: Platform.OS === 'ios' ? 32 : 16,
+    paddingVertical: Platform.OS === 'ios' ? 20 : 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },

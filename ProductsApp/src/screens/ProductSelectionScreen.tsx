@@ -12,6 +12,7 @@ import {
   Alert,
   Modal,
   Animated,
+  Platform,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { ProductCard } from '../components/ProductCard';
@@ -438,7 +439,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: Platform.OS === 'ios' ? 16 : 12,
+    paddingTop: Platform.OS === 'ios' ? 20 : 12,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
@@ -456,9 +458,11 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   title: {
-    fontSize: 18,
+    fontSize: Platform.OS === 'ios' ? 20 : 18,
     fontWeight: '600',
     color: '#333',
+    textAlign: 'center',
+    flex: 1,
   },
   clearButton: {
     width: 32,
@@ -556,7 +560,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopWidth: 1,
     borderTopColor: '#E5E5E5',
-    padding: 16,
+    padding: Platform.OS === 'ios' ? 20 : 16,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
   },
   paymentButtonContainer: {
     marginBottom: 12,
@@ -648,14 +653,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: Platform.OS === 'ios' ? 32 : 16,
+    paddingVertical: Platform.OS === 'ios' ? 20 : 16,
+    paddingTop: Platform.OS === 'ios' ? 24 : 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: Platform.OS === 'ios' ? 20 : 18,
     fontWeight: '600',
     color: '#333',
+    marginLeft: Platform.OS === 'ios' ? 8 : 0,
   },
   closeButton: {
     width: 32,
@@ -670,7 +678,8 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   option: {
-    padding: 16,
+    paddingHorizontal: Platform.OS === 'ios' ? 32 : 16,
+    paddingVertical: Platform.OS === 'ios' ? 20 : 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },
@@ -690,7 +699,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: Platform.OS === 'ios' ? 16 : 12,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
