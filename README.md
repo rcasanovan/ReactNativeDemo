@@ -279,7 +279,7 @@ The app includes comprehensive unit tests:
 - **iOS**: 13.0+
 - **Android**: API level 21+ (Android 5.0+)
 
-> **⚠️ iOS 18 Compatibility Note**: During development, we encountered compatibility issues with iOS 18 beta versions. The app may experience unexpected behavior or crashes on iOS 18 beta releases. For the best experience, we recommend using iOS 17.x or stable iOS 18 releases when available.
+> **⚠️ iOS 18 Compatibility Note**: During development, I encountered compatibility issues with iOS 18 versions. The app may experience unexpected behavior getting the products using the API. After an intial investigation, I detected a bug related to ReactNative and iOS 18. For the best experience, I recommend using iOS 17.x.
 
 ## 📄 License
 
