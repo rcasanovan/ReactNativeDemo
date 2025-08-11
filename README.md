@@ -103,7 +103,6 @@ The app uses **MobX** for reactive state management:
 - **Order History**: Track completed transactions
 
 ### 🌍 Internationalization
-- **Multi-Language Support**: English UI with Spanish locale handling
 - **Currency Formatting**: Proper currency display and conversion
 - **Decimal Separator**: Automatic comma-to-period conversion for Spanish locale
 
