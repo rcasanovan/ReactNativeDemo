@@ -98,9 +98,7 @@ The app uses **MobX** for reactive state management:
 - **Transaction Processing**: Mock API integration with success/error handling
 
 ### 🎫 Order Management
-- **Seat Assignment**: Assign seats to orders (Row A-Z, Seat 1-50)
-- **Receipt Generation**: Detailed order receipts
-- **Order History**: Track completed transactions
+- **Seat Assignment**: Assign seats to orders
 
 ### 🌍 Internationalization
 - **Currency Formatting**: Proper currency display and conversion
