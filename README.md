@@ -260,8 +260,8 @@ The app is designed to easily switch to a real backend API by simply updating th
 ## 💱 Currency Support
 
 The app supports three currencies with real-time conversion:
-- **EUR** (Euro) - Base currency
-- **USD** (US Dollar) 
+- **USD** (US Dollar) - Base currency
+- **EUR** (Euro) 
 - **GBP** (British Pound)
 
 Exchange rates are currently hardcoded for demo purposes but can be easily replaced with real API calls.
